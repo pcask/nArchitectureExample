@@ -3,6 +3,7 @@ using Business.Validations;
 using Core.Entities;
 using Core.Entities.Security;
 using DataAccess.Abstracts;
+using Microsoft.EntityFrameworkCore;
 
 namespace Business.Concretes;
 
@@ -60,14 +61,16 @@ public class UserManager(IUserRepository userRepository,
         return await userRepository.GetAsync(u => u.Id == id);
     }
 
-    public User? GetByUserName(string userName)
+    public User? GetByUserNameWithClaims(string userName)
     {
-        return userRepository.Get(u => u.UserName == userName);
+        return userRepository
+            .Get(u => u.UserName == userName, include: qU => qU.Include(u => u.UserClaims).ThenInclude(uc => uc.Claim));
     }
 
-    public async Task<User?> GetByUserNameAsync(string userName)
+    public async Task<User?> GetByUserNameWithClaimsAsync(string userName)
     {
-        return await userRepository.GetAsync(u => u.UserName == userName);
+        return await userRepository
+            .GetAsync(u => u.UserName == userName, include: qU => qU.Include(u => u.UserClaims).ThenInclude(uc => uc.Claim));
     }
 
     public IEnumerable<User> GetAll() => userRepository.GetAll();

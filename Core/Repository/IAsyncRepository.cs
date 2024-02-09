@@ -11,7 +11,7 @@ public interface IAsyncRepository<TEntity>
                                 Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, dynamic>> include = null,
                                 Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> orderBy = null,
                                 bool isTracking = false,
-                                short limit = 0,
+                                short limit = 100,
                                 short page = 0);
 
     Task<TEntity?> GetAsync(Expression<Func<TEntity, bool>> condition = null,

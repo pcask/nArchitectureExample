@@ -17,7 +17,7 @@ public class AuthManager(IUserService userService,
         await authValidations.CheckPasswordAsync(userRegisterDto.Password);
         await authValidations.CheckNamesAsync(userRegisterDto);
 
-        var _user = await userService.GetByUserNameAsync(userRegisterDto.UserName);
+        var _user = await userService.GetByUserNameWithClaimsAsync(userRegisterDto.UserName);
 
         await authValidations.CheckUserAlreadyExistAsync(_user);
 
@@ -39,7 +39,7 @@ public class AuthManager(IUserService userService,
     }
     public async Task<AccessToken> LoginAsync(UserLoginDto userLoginDto)
     {
-        var user = await userService.GetByUserNameAsync(userLoginDto.UserName);
+        var user = await userService.GetByUserNameWithClaimsAsync(userLoginDto.UserName);
         await authValidations.CheckUserExistenceAsync(user);
         await authValidations.CheckPasswordAsync(userLoginDto.Password);
         await authValidations.CheckUserClaimsAsync(user);

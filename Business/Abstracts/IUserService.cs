@@ -7,7 +7,7 @@ public interface IUserService
 {
     IEnumerable<User> GetAll();
     User? GetById(Guid id);
-    User? GetByUserName(string userName);
+    User? GetByUserNameWithClaims(string userName);
 
     User Add(User user);
     User Update(User user);
@@ -18,7 +18,7 @@ public interface IUserService
     #region Async Methods
     Task<IEnumerable<User>> GetAllAsync();
     Task<User?> GetByIdAsync(Guid id);
-    Task<User?> GetByUserNameAsync(string userName);
+    Task<User?> GetByUserNameWithClaimsAsync(string userName);
 
 
     Task<User> AddAsync(User user);

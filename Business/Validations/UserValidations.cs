@@ -1,17 +1,19 @@
-﻿using Business.Exceptions;
+﻿using Autofac.Features.AttributeFilters;
+using Business.Exceptions;
 using Core.Abstracts;
 using Core.Entities.Security;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Business.Validations;
 
-public class UserValidations
+public class UserValidations([KeyFilter("TR")] ICheckIdentityService _checkIdentityService)
 {
-    private readonly ICheckIdentityService _checkIdentityService;
-    public UserValidations([FromKeyedServices("TR")] ICheckIdentityService checkIdentityService)
-    {
-        _checkIdentityService = checkIdentityService;
-    }
+    //private readonly ICheckIdentityService _checkIdentityService;
+    //public UserValidations([FromKeyedServices("TR")] ICheckIdentityService checkIdentityService)
+    //{
+    //    _checkIdentityService = checkIdentityService;
+    //}
+
+   
     public async Task CheckIdentityAsync(User user)
     {
         bool check = await _checkIdentityService.CheckIdentityAsync(user.IdentificationNumber, user.FirstName, user.LastName, user.BirthYear);

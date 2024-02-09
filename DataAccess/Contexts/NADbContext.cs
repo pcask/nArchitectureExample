@@ -11,6 +11,13 @@ public class NADbContext : DbContext
         optionsBuilder.UseSqlServer("Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=NAExampleDB;Integrated Security=True");
     }
 
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        // Add unique constraint to prevent duplicate data in many-to-many relationship.
+        modelBuilder.Entity<UserClaim>()
+            .HasIndex(e => new { e.UserId, e.ClaimId }).IsUnique();
+    }
+
     public DbSet<User> Users { get; set; }
     public DbSet<Claim> Claims { get; set; }
     public DbSet<UserClaim> UserClaims { get; set; }

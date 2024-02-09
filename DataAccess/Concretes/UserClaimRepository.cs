@@ -1,10 +1,10 @@
 ﻿using Core.Entities.Security;
 using Core.Repository.EFCore;
 using DataAccess.Abstracts;
-using Microsoft.EntityFrameworkCore;
+using DataAccess.Contexts;
 
 namespace DataAccess.Concretes;
 
-public class UserClaimRepository(DbContext context) : Repository<UserClaim>(context), IUserClaimRepository
+public class UserClaimRepository(NADbContext context) : Repository<UserClaim>(context), IUserClaimRepository
 {
 }

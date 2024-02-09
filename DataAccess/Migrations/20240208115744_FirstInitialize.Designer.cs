@@ -4,6 +4,7 @@ using DataAccess.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccess.Migrations
 {
     [DbContext(typeof(NADbContext))]
-    partial class ArcDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240208115744_FirstInitialize")]
+    partial class FirstInitialize
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -99,25 +102,6 @@ namespace DataAccess.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Categories");
-                });
-
-            modelBuilder.Entity("Core.Entities.Claim", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Group")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Claims");
                 });
 
             modelBuilder.Entity("Core.Entities.Order", b =>
@@ -208,7 +192,26 @@ namespace DataAccess.Migrations
                     b.ToTable("ProductTransactions");
                 });
 
-            modelBuilder.Entity("Core.Entities.User", b =>
+            modelBuilder.Entity("Core.Entities.Security.Claim", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Group")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Claims");
+                });
+
+            modelBuilder.Entity("Core.Entities.Security.User", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -216,6 +219,10 @@ namespace DataAccess.Migrations
 
                     b.Property<short>("BirthYear")
                         .HasColumnType("smallint");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
@@ -246,7 +253,7 @@ namespace DataAccess.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("Core.Entities.UserClaim", b =>
+            modelBuilder.Entity("Core.Entities.Security.UserClaim", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -262,7 +269,8 @@ namespace DataAccess.Migrations
 
                     b.HasIndex("ClaimId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId", "ClaimId")
+                        .IsUnique();
 
                     b.ToTable("UserClaims");
                 });
@@ -275,7 +283,7 @@ namespace DataAccess.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Core.Entities.User", "User")
+                    b.HasOne("Core.Entities.Security.User", "User")
                         .WithMany("Cards")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -299,7 +307,7 @@ namespace DataAccess.Migrations
 
             modelBuilder.Entity("Core.Entities.Order", b =>
                 {
-                    b.HasOne("Core.Entities.User", "User")
+                    b.HasOne("Core.Entities.Security.User", "User")
                         .WithMany("Orders")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -349,15 +357,15 @@ namespace DataAccess.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("Core.Entities.UserClaim", b =>
+            modelBuilder.Entity("Core.Entities.Security.UserClaim", b =>
                 {
-                    b.HasOne("Core.Entities.Claim", "Claim")
+                    b.HasOne("Core.Entities.Security.Claim", "Claim")
                         .WithMany("UserClaims")
                         .HasForeignKey("ClaimId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Core.Entities.User", "User")
+                    b.HasOne("Core.Entities.Security.User", "User")
                         .WithMany("UserClaims")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -383,11 +391,6 @@ namespace DataAccess.Migrations
                     b.Navigation("Products");
                 });
 
-            modelBuilder.Entity("Core.Entities.Claim", b =>
-                {
-                    b.Navigation("UserClaims");
-                });
-
             modelBuilder.Entity("Core.Entities.Order", b =>
                 {
                     b.Navigation("OrderDetails");
@@ -398,7 +401,12 @@ namespace DataAccess.Migrations
                     b.Navigation("ProductTransactions");
                 });
 
-            modelBuilder.Entity("Core.Entities.User", b =>
+            modelBuilder.Entity("Core.Entities.Security.Claim", b =>
+                {
+                    b.Navigation("UserClaims");
+                });
+
+            modelBuilder.Entity("Core.Entities.Security.User", b =>
                 {
                     b.Navigation("Cards");
 

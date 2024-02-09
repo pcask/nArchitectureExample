@@ -1,10 +1,10 @@
 ﻿using Core.Entities;
 using Core.Repository.EFCore;
 using DataAccess.Abstracts;
-using Microsoft.EntityFrameworkCore;
+using DataAccess.Contexts;
 
 namespace DataAccess.Concretes;
 
-public class CategoryRepository(DbContext context) : Repository<Category>(context), ICategoryRepository
+public class CategoryRepository(NADbContext context) : Repository<Category>(context), ICategoryRepository
 {
 }

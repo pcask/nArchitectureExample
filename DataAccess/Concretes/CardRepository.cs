@@ -1,10 +1,10 @@
 ﻿using Core.Entities;
 using Core.Repository.EFCore;
 using DataAccess.Abstracts;
-using Microsoft.EntityFrameworkCore;
+using DataAccess.Contexts;
 
 namespace DataAccess.Concretes;
 
-public class CardRepository(DbContext context) : Repository<Card>(context), ICardRepository
+public class CardRepository(NADbContext context) : Repository<Card>(context), ICardRepository
 {
 }

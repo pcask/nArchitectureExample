@@ -1,4 +1,5 @@
-﻿using Core.Entities.Security;
+﻿using Core.DTOs.UserClaim;
+using Core.Entities.Security;
 
 namespace Business.Abstracts;
 
@@ -7,15 +8,15 @@ public interface IUserClaimService
     IEnumerable<UserClaim> GetAll();
     UserClaim? GetById(Guid id);
 
-    UserClaim Add(UserClaim userClaim);
-    UserClaim Update(UserClaim userClaim);
+    UserClaim Add(AddUserClaimDto userClaimDto);
+    UserClaim Update(UpdateUserClaimDto userClaimDto);
     void DeleteById(Guid id);
 
 
     Task<IEnumerable<UserClaim>> GetAllAsync();
     Task<UserClaim?> GetByIdAsync(Guid id);
 
-    Task<UserClaim> AddAsync(UserClaim userClaim);
-    Task<UserClaim> UpdateAsync(UserClaim userClaim);
+    Task<UserClaim> AddAsync(AddUserClaimDto userClaimDto);
+    Task<UserClaim> UpdateAsync(UpdateUserClaimDto userClaimDto);
     Task DeleteByIdAsync(Guid id);
 }

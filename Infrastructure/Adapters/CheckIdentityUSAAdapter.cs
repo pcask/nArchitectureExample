@@ -1,8 +1,8 @@
 ﻿using Core.Abstracts;
 
-namespace Core.Adapters;
+namespace Infrastructure.Adapters;
 
-public class CheckIdentityAdapterUSA : ICheckIdentityService
+public class CheckIdentityUSAAdapter : ICheckIdentityService
 {
     public bool CheckIdentity(string identificationNumber, string firstName, string lastName, short birthYear)
     {

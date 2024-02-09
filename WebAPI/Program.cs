@@ -1,24 +1,32 @@
-﻿using BookStore.WebApi.Middlewares;
+﻿using Autofac;
+using Autofac.Extensions.DependencyInjection;
+using Business.Middlewares;
 using Business;
+using Business.DependencyResolvers.Autofac;
 using Core;
 using Core.Utilities;
 using DataAccess;
 using DataAccess.Contexts;
+using Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.RegisterCoreServices();
-builder.Services.RegisterDataAccessServices();
-builder.Services.RegisterBusinessServices();
-
-
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+//builder.Services.RegisterCoreServices();
+//builder.Services.RegisterInfrastructureServices();
+builder.Services.RegisterDataAccessServices();
+builder.Services.RegisterBusinessServices();
+
+builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
+builder.Host.ConfigureContainer<ContainerBuilder>(builder => builder.RegisterModule(new AutofacBusinessModule()));
 
 
 // IoC container'a eklenen tüm service'lere global olarak erişmek için ServicesTool'umuza IServiceCollection'ı gönderiyoruz.

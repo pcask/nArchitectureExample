@@ -55,6 +55,7 @@ namespace DataAccess.Migrations
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     IdentificationNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     UserName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     FirstName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     LastName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     BirthYear = table.Column<short>(type: "smallint", nullable: false),
@@ -269,9 +270,10 @@ namespace DataAccess.Migrations
                 column: "ClaimId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_UserClaims_UserId",
+                name: "IX_UserClaims_UserId_ClaimId",
                 table: "UserClaims",
-                column: "UserId");
+                columns: new[] { "UserId", "ClaimId" },
+                unique: true);
         }
 
         /// <inheritdoc />
