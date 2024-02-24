@@ -8,7 +8,7 @@ public static class ServiceRegistration
 {
     public static void RegisterInfrastructureServices(this IServiceCollection services)
     {
-        //services.AddKeyedScoped<ICheckIdentityService, CheckIdentityAdapterTR>("TR");
-        //services.AddKeyedScoped<ICheckIdentityService, CheckIdentityAdapterUSA>("USA");
+        services.AddScoped<ICheckIdentityService, CheckIdentityTRAdapter>();
+        //services.AddKeyedScoped<ICheckIdentityService, CheckIdentityUSAAdapter>("USA");
     }
 }

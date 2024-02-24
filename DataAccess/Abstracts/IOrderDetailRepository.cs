@@ -1,4 +1,4 @@
-﻿using Core.Entities;
+﻿using Entity.Entities;
 using Core.Repository;
 
 namespace DataAccess.Abstracts;

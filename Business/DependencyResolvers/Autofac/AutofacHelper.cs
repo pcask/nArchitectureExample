@@ -1,6 +1,5 @@
 ﻿using Autofac;
 using Autofac.Extras.DynamicProxy;
-using Business.Validations;
 using Castle.DynamicProxy;
 using Core.Utilities.Interceptors;
 using System.Reflection;
@@ -12,7 +11,7 @@ public static class AutofacHelper
     internal static void RegisterByEndName(ContainerBuilder builder, Assembly assembly, string endName, ServiceLifeTime serviceLifeTime = ServiceLifeTime.InstancePerLifetimeScope, bool hasInterface = true)
     {
         var registrationBuilder = builder.RegisterAssemblyTypes(assembly)
-                 .Where(x => x.Name.EndsWith(endName) && x.Name != nameof(UserValidations));
+                 .Where(x => x.Name.EndsWith(endName));
 
         if (hasInterface)
             registrationBuilder = registrationBuilder

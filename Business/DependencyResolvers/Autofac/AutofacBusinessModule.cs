@@ -1,13 +1,6 @@
 ﻿using Autofac;
 using Module = Autofac.Module;
-using Business.Abstracts;
-using Business.Logging;
-using Business.Validations;
 using System.Reflection;
-using Core.Security.JWT;
-using Core.Abstracts;
-using Infrastructure.Adapters;
-using Autofac.Features.AttributeFilters;
 using static Business.DependencyResolvers.Autofac.AutofacHelper;
 
 namespace Business.DependencyResolvers.Autofac;
@@ -16,32 +9,19 @@ public class AutofacBusinessModule : Module
 {
     protected override void Load(ContainerBuilder builder)
     {
-        // Core
-        builder.RegisterType<JWTTokenHelper>().As<ITokenHelper>().SingleInstance();
-
         // Infrastructure
-        builder.RegisterType<CheckIdentityTRAdapter>().Keyed<ICheckIdentityService>("TR").InstancePerLifetimeScope();
-        builder.RegisterType<CheckIdentityUSAAdapter>().Keyed<ICheckIdentityService>("USA").InstancePerLifetimeScope();
-
-        // Business
-        builder.RegisterType<ConsoleLoggerManager>().As<ILoggerService>().SingleInstance();
-        builder.RegisterType<AuthValidations>().InstancePerLifetimeScope();
-
-        // "keyed" olarak eklediğimiz ICheckIdentityService'in UserValidation içerisinde çözümlenebilmesi için; WithAttributeFiltering()
-        builder.RegisterType<UserValidations>().WithAttributeFiltering().InstancePerLifetimeScope();
+        // builder.RegisterType<CheckIdentityTRAdapter>().Keyed<ICheckIdentityService>("TR").InstancePerLifetimeScope();
+        // Öncesinde Keyed Service olarak eklemiştim fakat Autofac ile service'i manual olarak resolve etmek zahmetli geldi.
+        // UserValidation, ICheckIdentityService tipine bağlımlı ve manual resolve işlemi için dıdısının dısınından icazet almak gerekiyor.
+        // Örnek bir resolve işlemini ServiceTool.cs içerisinde yazdım, yorum satırı halinde, beyaz atlı prensini bekliyor.
 
 
-        //builder.RegisterType<ClaimValidations>().InstancePerLifetimeScope();
-        //builder.RegisterType<UserClaimValidations>().InstancePerLifetimeScope();
-        //builder.RegisterType<CategoryValidations>().InstancePerLifetimeScope();
-        //builder.RegisterType<ProductValidations>().InstancePerLifetimeScope();
-        //builder.RegisterType<ProductTransactionValidations>().InstancePerLifetimeScope();
-        //builder.RegisterType<OrderValidations>().InstancePerLifetimeScope();
-        //builder.RegisterType<OrderDetailValidations>().InstancePerLifetimeScope();
-        //builder.RegisterType<CardTypeValidations>().InstancePerLifetimeScope();
-        //builder.RegisterType<CardValidations>().InstancePerLifetimeScope();
-        //builder.RegisterType<CardTransactionValidations>().InstancePerLifetimeScope();
-        RegisterByEndName(builder, Assembly.GetExecutingAssembly(), "Validations", ServiceLifeTime.InstancePerLifetimeScope, false);
+        // "keyed" olarak eklediğimiz ICheckIdentityService'in UserValidation içerisinde çözümlenebilmesi için;
+        // aşağıdaki gibi kullanılmalı fakat ICheckIdentityService'i keyed olarak eklemekten vazgeçtim.
+        // builder.RegisterType<UserValidations>().WithAttributeFiltering().InstancePerLifetimeScope();
+
+        // Validation'ların sahip olduğu method'ları intercept etmiyeceğimiz için buradan kayıt olmalarına gerek yok. 
+        //RegisterByEndName(builder, Assembly.GetExecutingAssembly(), "Validations", ServiceLifeTime.InstancePerLifetimeScope, false);
 
 
         //builder.RegisterType<UserManager>().As<IUserService>().InstancePerLifetimeScope();
@@ -61,5 +41,6 @@ public class AutofacBusinessModule : Module
 
         // Autofac IoC container'a eklenen tüm service'leri ele almak için; 
         // var registeredServices = builder.Build().ComponentRegistry.Registrations;
+
     }
 }

@@ -39,16 +39,16 @@ public class CustomExceptionMiddleware(RequestDelegate next, ILoggerService logg
         context.Response.ContentType = MediaTypeNames.Application.Json;
 
         short StatusCode = StatusCodes.Status500InternalServerError;
-        string expMessage = ex.Message; // Canlıda hata ait mesaj alalen gösterilmeyecek örn: "Internal Server Error";
+        string expMessage = ex.Message; // Canlıda hataya ait mesaj alalen gösterilmeyecek örn: "Internal Server Error";
 
         while (ex.InnerException != null)
         {
             ex = ex.InnerException;
+            expMessage = ex.Message;
 
             if (ex is ValidationException)
             {
                 StatusCode = (ex as ValidationException).StatusCode;
-                expMessage = ex.Message;
                 break;
             }
         }

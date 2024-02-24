@@ -1,5 +1,5 @@
 ﻿using Business.Exceptions;
-using Core.Entities;
+using Entity.Entities;
 
 namespace Business.Validations;
 

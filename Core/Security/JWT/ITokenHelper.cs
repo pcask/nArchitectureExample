@@ -4,6 +4,6 @@ namespace Core.Security.JWT;
 
 public interface ITokenHelper
 {
-    AccessToken GenerateAccessToken(User user);
+    AccessToken GenerateAccessToken(AppUser user);
     Task<bool> ValidateTokenAsync(string token);
 }

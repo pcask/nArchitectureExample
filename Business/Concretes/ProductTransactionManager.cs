@@ -1,6 +1,6 @@
 ﻿using Business.Abstracts;
 using Business.Validations;
-using Core.Entities;
+using Entity.Entities;
 using DataAccess.Abstracts;
 
 namespace Business.Concretes;

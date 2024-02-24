@@ -1,21 +1,21 @@
 ﻿using Business.Abstracts;
 using Business.Validations;
-using Core.DTOs.UserClaim;
-using Core.Entities.Security;
+using Entity.DTOs.UserClaims;
 using DataAccess.Abstracts;
+using Entity.ViewModels.UserClaims;
 
 namespace Business.Concretes;
 
 public class UserClaimManager(IUserClaimRepository userClaimRepository, UserClaimValidations userClaimValidations) : IUserClaimService
 {
-    public UserClaim Add(AddUserClaimDto userClaimDto)
+    public void Add(AddUserClaimDto addUserClaimDto)
     {
-        return userClaimRepository.Add(new() { UserId = userClaimDto.UserId, ClaimId = userClaimDto.ClaimId });
+        userClaimRepository.Add(addUserClaimDto.GetUserClaim());
     }
 
-    public async Task<UserClaim> AddAsync(AddUserClaimDto userClaimDto)
+    public async Task AddAsync(AddUserClaimDto addUserClaimDto)
     {
-        return await userClaimRepository.AddAsync(new() { UserId = userClaimDto.UserId, ClaimId = userClaimDto.ClaimId });
+        await userClaimRepository.AddAsync(addUserClaimDto.GetUserClaim());
     }
 
     public void DeleteById(Guid id)
@@ -34,33 +34,51 @@ public class UserClaimManager(IUserClaimRepository userClaimRepository, UserClai
         await userClaimRepository.DeleteAsync(userClaim);
     }
 
-    public IEnumerable<UserClaim> GetAll() => userClaimRepository.GetAll();
-
-    public async Task<IEnumerable<UserClaim>> GetAllAsync() => await userClaimRepository.GetAllAsync();
-
-    public UserClaim? GetById(Guid id) => userClaimRepository.Get(c => c.Id == id);
-
-    public async Task<UserClaim?> GetByIdAsync(Guid id) => await userClaimRepository.GetAsync(c => c.Id == id);
-
-    public UserClaim Update(UpdateUserClaimDto userClaimDto)
+    public IEnumerable<UserClaimListViewModel> GetAll()
     {
-        var _userClaim = userClaimRepository.Get(c => c.Id == userClaimDto.Id);
-        userClaimValidations.CheckExistence(_userClaim);
+        var userClaims = userClaimRepository.GetAll();
 
-        _userClaim.UserId = userClaimDto.UserId;
-        _userClaim.ClaimId = userClaimDto.ClaimId;
-
-        return userClaimRepository.Update(_userClaim);
+        return UserClaimListViewModel.GetModels(userClaims);
     }
 
-    public async Task<UserClaim> UpdateAsync(UpdateUserClaimDto userClaimDto)
+    public async Task<IEnumerable<UserClaimListViewModel>> GetAllAsync()
     {
-        var _userClaim = await userClaimRepository.GetAsync(c => c.Id == userClaimDto.Id);
+        var userClaims = await userClaimRepository.GetAllAsync();
+
+        return UserClaimListViewModel.GetModels(userClaims);
+    }
+
+    public UserClaimViewModel GetById(Guid id)
+    {
+        var userClaim = userClaimRepository.Get(c => c.Id == id);
+        return UserClaimViewModel.GetModel(userClaim);
+    }
+
+    public async Task<UserClaimViewModel> GetByIdAsync(Guid id)
+    {
+        var userClaim = await userClaimRepository.GetAsync(c => c.Id == id);
+        return UserClaimViewModel.GetModel(userClaim);
+    }
+
+    public void Update(UpdateUserClaimDto updateUserClaimDto)
+    {
+        var _userClaim = userClaimRepository.Get(c => c.Id == updateUserClaimDto.Id);
+        userClaimValidations.CheckExistence(_userClaim);
+
+        _userClaim.AppUserId = updateUserClaimDto.UserId;
+        _userClaim.ClaimId = updateUserClaimDto.ClaimId;
+
+        userClaimRepository.Update(_userClaim);
+    }
+
+    public async Task UpdateAsync(UpdateUserClaimDto updateUserClaimDto)
+    {
+        var _userClaim = await userClaimRepository.GetAsync(c => c.Id == updateUserClaimDto.Id);
         await userClaimValidations.CheckExistenceAsync(_userClaim);
 
-        _userClaim.UserId = userClaimDto.UserId;
-        _userClaim.ClaimId = userClaimDto.ClaimId;
+        _userClaim.AppUserId = updateUserClaimDto.UserId;
+        _userClaim.ClaimId = updateUserClaimDto.ClaimId;
 
-        return await userClaimRepository.UpdateAsync(_userClaim);
+        await userClaimRepository.UpdateAsync(_userClaim);
     }
 }

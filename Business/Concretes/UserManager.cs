@@ -1,101 +1,161 @@
 ﻿using Business.Abstracts;
-using Business.Validations;
-using Core.Entities;
-using Core.Entities.Security;
+using Entity.Entities;
 using DataAccess.Abstracts;
-using Microsoft.EntityFrameworkCore;
+using Core.Aspects.Autofac.Performance;
+using Core.Aspects.Autofac.Caching;
+using Entity.DTOs.CardTransactions;
+using Core.Aspects.Autofac.Validation;
+using Core.CrossCuttingConcerns.Validation;
+using Entity.DTOs.Users;
+using Business.Validations.Users;
+using Entity.ViewModels.Users;
+using Core.Security;
 
 namespace Business.Concretes;
 
 public class UserManager(IUserRepository userRepository,
-                         UserValidations userValidations,
                          ICardTransactionService cardTransactionService)
     : IUserService
 {
-    public User Add(User user)
+
+
+    [CacheRemoveAspect]
+    [ValidationAspect(typeof(UserAddValidations))]
+    public void Add(UserAddDto userAddDto)
     {
-        userValidations.CheckIdentity(user);
-        userValidations.CheckNames(user);
-        return userRepository.Add(user);
+        HashingHelper.CreatePasswordHash(userAddDto.Password, out byte[] passwordHash, out byte[] passwordSalt);
+
+        userRepository.Add(userAddDto.GetUser(passwordHash, passwordSalt));
     }
 
-    public async Task<User> AddAsync(User user)
+    [CacheRemoveAspect]
+    [ValidationAspect(typeof(UserAddValidations))]
+    public async Task AddAsync(UserAddDto userAddDto)
     {
-        await userValidations.CheckIdentityAsync(user);
-        await userValidations.CheckNamesAsync(user);
-        return await userRepository.AddAsync(user);
+        HashingHelper.CreatePasswordHash(userAddDto.Password, out byte[] passwordHash, out byte[] passwordSalt);
+
+        await userRepository.AddAsync(userAddDto.GetUser(passwordHash, passwordSalt));
     }
 
-    public CardTransaction AddBalance(CardTransaction cardTransaction)
+    public void AddBalance(AddCardTransactionDto addCardTransactionDto)
     {
-        return cardTransactionService.Add(cardTransaction);
+        CardTransaction cardTransaction = new()
+        {
+            CardId = addCardTransactionDto.CardId,
+            CreatedDate = DateTime.UtcNow,
+            Balance = addCardTransactionDto.Balance,
+        };
+
+        cardTransactionService.Add(cardTransaction);
     }
 
-    public async Task<CardTransaction> AddBalanceAsync(CardTransaction cardTransaction)
+    public async Task AddBalanceAsync(AddCardTransactionDto addCardTransactionDto)
     {
-        return await cardTransactionService.AddAsync(cardTransaction);
+        CardTransaction cardTransaction = new()
+        {
+            CardId = addCardTransactionDto.CardId,
+            CreatedDate = DateTime.UtcNow,
+            Balance = addCardTransactionDto.Balance,
+        };
+        await cardTransactionService.AddAsync(cardTransaction);
     }
 
-    public void DeleteById(Guid id)
+
+    [CacheRemoveAspect]
+    [ValidationAspect(typeof(UserDeleteValidations))]
+    public void DeleteById(Guid id, ValidationReturn vr)
+    {
+        User beDeletedUser = vr?.User != null ? vr.User as User : userRepository.Get(u => u.Id == id);
+
+        userRepository.Delete(beDeletedUser);
+    }
+
+    [CacheRemoveAspect]
+    [ValidationAspect(typeof(UserDeleteValidations))]
+    public async Task DeleteByIdAsync(Guid id, ValidationReturn vr)
+    {
+        User beDeletedUser = vr?.User != null ? vr.User as User : await userRepository.GetAsync(u => u.Id == id);
+
+        await userRepository.DeleteAsync(beDeletedUser);
+    }
+
+    public UserViewModel GetById(Guid id)
     {
         var user = userRepository.Get(u => u.Id == id);
-        userValidations.CheckExistence(user);
-
-        userRepository.Delete(user);
+        return UserViewModel.GetModel(user);
+    }
+    [CacheAspect(10)]
+    public async Task<UserViewModel> GetByIdAsync(Guid id)
+    {
+        var user = await userRepository.GetAsync(u => u.Id == id);
+        return UserViewModel.GetModel(user);
     }
 
-    public async Task DeleteByIdAsync(Guid id)
-    {
-        var user = userRepository.Get(u => u.Id == id);
-        await userValidations.CheckExistenceAsync(user);
 
-        await userRepository.DeleteAsync(user);
+    [CacheAspect(10)]
+    public IEnumerable<UserListViewModel> GetAll()
+    {
+        var users = userRepository.GetAll();
+
+        return UserListViewModel.GetModels(users);
     }
 
-    public User? GetById(Guid id)
+    [CacheAspect(10, Priority = 1)]
+    [PerformanceAspect(1, Priority = 2)]
+    public async Task<IEnumerable<UserListViewModel>> GetAllAsync()
     {
-        return userRepository.Get(u => u.Id == id);
-    }
-    public async Task<User?> GetByIdAsync(Guid id)
-    {
-        return await userRepository.GetAsync(u => u.Id == id);
-    }
+        var users = await userRepository.GetAllAsync();
 
-    public User? GetByUserNameWithClaims(string userName)
-    {
-        return userRepository
-            .Get(u => u.UserName == userName, include: qU => qU.Include(u => u.UserClaims).ThenInclude(uc => uc.Claim));
+        return UserListViewModel.GetModels(users);
     }
 
-    public async Task<User?> GetByUserNameWithClaimsAsync(string userName)
+    [CacheRemoveAspect]
+    [ValidationAspect(typeof(UserUpdateValidations))]
+    public void Update(Guid id, UserUpdateDto userUpdateDto, ValidationReturn vr)
     {
-        return await userRepository
-            .GetAsync(u => u.UserName == userName, include: qU => qU.Include(u => u.UserClaims).ThenInclude(uc => uc.Claim));
+        if (vr.NoNeedToGoToDb)
+            return;
+
+        userRepository.Update(userUpdateDto.GetUser(vr.User as User));
     }
 
-    public IEnumerable<User> GetAll() => userRepository.GetAll();
-
-    public async Task<IEnumerable<User>> GetAllAsync() => await userRepository.GetAllAsync();
-
-    public User Update(User user)
+    [CacheRemoveAspect]
+    [ValidationAspect(typeof(UserUpdateValidations))]
+    public async Task UpdateAsync(Guid id, UserUpdateDto userUpdateDto, ValidationReturn vr)
     {
-        userValidations.CheckIdentity(user);
-        userValidations.CheckNames(user);
+        // Tüm bu validation işlemlerini artık ValidationAspect ile yönetiyoruz artık.
+        //await userValidations.CheckIdentityAsync(user);
+        //await userValidations.CheckNamesAsync(user);
+        //var _user = await userRepository.GetAsync(u => u.Id == user.Id);
+        //await userValidations.CheckExistenceAsync(_user);
 
-        var _user = userRepository.Get(u => u.Id == user.Id);
-        userValidations.CheckExistence(_user);
+        if (vr.NoNeedToGoToDb)
+            return;
 
-        return userRepository.Update(user);
+        await userRepository.UpdateAsync(userUpdateDto.GetUser(vr.User as User));
     }
 
-    public async Task<User> UpdateAsync(User user)
+    public UserViewModel GetByUserName(string userName)
     {
-        await userValidations.CheckIdentityAsync(user);
-        await userValidations.CheckNamesAsync(user);
+        var user = userRepository.Get(u => u.UserName == userName);
+        return UserViewModel.GetModel(user);
+    }
 
-        var _user = await userRepository.GetAsync(u => u.Id == user.Id);
-        await userValidations.CheckExistenceAsync(_user);
+    public async Task<UserViewModel> GetByUserNameAsync(string userName)
+    {
+        var user = await userRepository.GetAsync(u => u.UserName == userName);
+        return UserViewModel.GetModel(user);
+    }
 
-        return await userRepository.UpdateAsync(user);
+    public UserViewModel GetByEmail(string email)
+    {
+        var user = userRepository.Get(u => u.Email == email);
+        return UserViewModel.GetModel(user);
+    }
+
+    public async Task<UserViewModel> GetByEmailAsync(string email)
+    {
+        var user = await userRepository.GetAsync(u => u.Email == email);
+        return UserViewModel.GetModel(user);
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Core.Entities.Common;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.Storage;
 using System.Diagnostics;
 using System.Linq.Expressions;
 
@@ -9,6 +10,9 @@ namespace Core.Repository.EFCore;
 public abstract class Repository<TEntity>(DbContext context) : IRepository<TEntity>, IAsyncRepository<TEntity>, IQuery<TEntity>
     where TEntity : Entity
 {
+    public IDbContextTransaction BeginTransaction() => context.Database.BeginTransaction();
+    public async Task<IDbContextTransaction> BeginTransactionAsync() => await context.Database.BeginTransactionAsync();
+
     public IQueryable<TEntity> Query()
     {
         return context.Set<TEntity>();

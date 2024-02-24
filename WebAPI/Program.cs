@@ -4,12 +4,11 @@ using Business.Middlewares;
 using Business;
 using Business.DependencyResolvers.Autofac;
 using Core;
+using Infrastructure;
 using Core.Utilities;
 using DataAccess;
 using DataAccess.Contexts;
-using Infrastructure;
 using Microsoft.EntityFrameworkCore;
-using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,19 +19,24 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-//builder.Services.RegisterCoreServices();
-//builder.Services.RegisterInfrastructureServices();
+builder.Services.RegisterCoreServices();
+builder.Services.RegisterInfrastructureServices();
 builder.Services.RegisterDataAccessServices();
 builder.Services.RegisterBusinessServices();
 
 builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
-builder.Host.ConfigureContainer<ContainerBuilder>(builder => builder.RegisterModule(new AutofacBusinessModule()));
-
+builder.Host.ConfigureContainer<ContainerBuilder>(builder =>
+{
+    builder.RegisterModule(new AutofacBusinessModule());
+});
 
 // IoC container'a eklenen tüm service'lere global olarak erişmek için ServicesTool'umuza IServiceCollection'ı gönderiyoruz.
 ServicesTool.CreateServiceProvider(builder.Services);
 
 var app = builder.Build();
+
+// Autofac container' a eklenen tüm service'lere global olarak erişmek için ILifetimeScope'u ServiceTool'umuza gönderiyoruz.
+ServicesTool.CreateAutofacServiceProvider(app.Services.GetAutofacRoot());
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -50,7 +54,8 @@ app.UseCustomExceptionHandler();
 
 app.MapControllers();
 
-// Eğer ki varsa yeni eklenen migration onları otomatik olarak Db'ye yansıtacak. (Manuel Update-Database'e son! İşçiyiz haklıyız asvfajs)
+// Eğer ki varsa yeni eklenen migration onları otomatik olarak Db'ye yansıtacak. (Manuel Update-Database'e son! Halı, kilim 5dk da dikilir, hemen teslim edilir.)
 await ServicesTool.GetService<NADbContext>().Database.MigrateAsync();
+
 
 app.Run();

@@ -1,8 +1,9 @@
 ﻿using Business.Abstracts;
 using Business.Validations;
-using Core.DTOs.Order;
-using Core.Entities;
+using Entity.DTOs.Orders;
+using Entity.Entities;
 using DataAccess.Abstracts;
+using Core.Aspects.Autofac.Transaction;
 
 namespace Business.Concretes;
 
@@ -12,6 +13,8 @@ public class OrderManager(IOrderRepository orderRepository,
                           IOrderDetailService orderDetailService)
     : IOrderService
 {
+
+    [TransactionScopeAspect]
     public Order Add(AddOrderDto addOrderDto)
     {
         orderValidations.CheckProductList(addOrderDto.ProductTransactions);
@@ -42,6 +45,7 @@ public class OrderManager(IOrderRepository orderRepository,
         return order;
     }
 
+    [TransactionScopeAspect]
     public async Task<Order> AddAsync(AddOrderDto addOrderDto)
     {
         return await Task.Run(() =>

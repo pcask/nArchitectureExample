@@ -1,12 +1,14 @@
 ﻿using Business.Abstracts;
-using Core.Entities.Security;
+using Entity.DTOs.CardTransactions;
+using Entity.DTOs.UserClaims;
+using Entity.DTOs.Users;
 using Microsoft.AspNetCore.Mvc;
 
 namespace WebAPI.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class UsersController(IUserService userService) : ControllerBase
+public class UsersController(IUserService userService, IUserClaimService userClaimService) : ControllerBase
 {
     [HttpGet("GetAll")]
     public async Task<IActionResult> GetAll()
@@ -21,21 +23,37 @@ public class UsersController(IUserService userService) : ControllerBase
     }
 
     [HttpPost("Add")]
-    public async Task<IActionResult> Add([FromBody] User user)
+    public async Task<IActionResult> Add([FromBody] UserAddDto userAddDto)
     {
-        return Ok(await userService.AddAsync(user));
+        await userService.AddAsync(userAddDto);
+        return Ok();
     }
 
-    [HttpPut("Update")]
-    public async Task<IActionResult> Update([FromBody] User user)
+    [HttpPut("Update/{id}")]
+    public async Task<IActionResult> Update(Guid id, [FromBody] UserUpdateDto userUpdateDto)
     {
-        return Ok(await userService.UpdateAsync(user));
+        await userService.UpdateAsync(id, userUpdateDto);
+        return Ok();
     }
 
     [HttpDelete("Delete/{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
         await userService.DeleteByIdAsync(id);
+        return Ok();
+    }
+
+    [HttpPost("AddBalance/{id}")]
+    public async Task<IActionResult> AddBalance([FromBody] AddCardTransactionDto addCardTransactionDto)
+    {
+        await userService.AddBalanceAsync(addCardTransactionDto);
+        return Ok();
+    }
+
+    [HttpPost("AddClaim")]
+    public async Task<IActionResult> AddClaim([FromBody] AddUserClaimDto addUserClaimDto)
+    {
+        await userClaimService.AddAsync(addUserClaimDto);
         return Ok();
     }
 }

@@ -1,5 +1,5 @@
-﻿using Core.Entities;
-using Core.Repository;
+﻿using Core.Repository;
+using Entity.Entities;
 
 namespace DataAccess.Abstracts;
 

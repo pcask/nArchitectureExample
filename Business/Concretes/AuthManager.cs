@@ -1,51 +1,28 @@
 ﻿using Business.Abstracts;
-using Business.Validations;
-using Core.Entities.Security;
+using Business.Validations.Auths;
+using Core.Aspects.Autofac.Caching;
+using Core.Aspects.Autofac.Validation;
+using Core.CrossCuttingConcerns.Validation;
 using Core.Security;
 using Core.Security.JWT;
-using Core.DTOs.User;
+using DataAccess.Abstracts;
+using Entity.DTOs.Users;
 
 namespace Business.Concretes;
 
 public class AuthManager(IUserService userService,
-                           AuthValidations authValidations,
-                           ITokenHelper tokenHelper)
+                         ITokenHelper tokenHelper)
     : IAuthService
 {
-    public async Task RegisterAsync(UserRegisterDto userRegisterDto)
+    [CacheRemoveAspect(Priority = 0)]
+    public async Task RegisterAsync(UserAddDto userAddDto)
     {
-        await authValidations.CheckPasswordAsync(userRegisterDto.Password);
-        await authValidations.CheckNamesAsync(userRegisterDto);
-
-        var _user = await userService.GetByUserNameWithClaimsAsync(userRegisterDto.UserName);
-
-        await authValidations.CheckUserAlreadyExistAsync(_user);
-
-        HashingHelper.CreatePasswordHash(userRegisterDto.Password, out byte[] passwordHash, out byte[] passwordSalt);
-
-        User user = new()
-        {
-            UserName = userRegisterDto.UserName,
-            Email = userRegisterDto.Email,
-            FirstName = userRegisterDto.FirstName,
-            LastName = userRegisterDto.LastName,
-            BirthYear = userRegisterDto.BirthYear,
-            IdentificationNumber = userRegisterDto.IdentificationNumber,
-            PasswordHash = passwordHash,
-            PasswordSalt = passwordSalt
-        };
-
-        await userService.AddAsync(user);
+        await userService.AddAsync(userAddDto);
     }
-    public async Task<AccessToken> LoginAsync(UserLoginDto userLoginDto)
+
+    [ValidationAspect(typeof(LoginValidations), Priority = 0)]
+    public async Task<AccessToken> LoginAsync(UserLoginDto userLoginDto, ValidationReturn vr)
     {
-        var user = await userService.GetByUserNameWithClaimsAsync(userLoginDto.UserName);
-        await authValidations.CheckUserExistenceAsync(user);
-        await authValidations.CheckPasswordAsync(userLoginDto.Password);
-        await authValidations.CheckUserClaimsAsync(user);
-
-        await authValidations.ValidatePasswordAsync(user, userLoginDto.Password);
-
-        return tokenHelper.GenerateAccessToken(user);
+        return await Task.Run(() => tokenHelper.GenerateAccessToken(vr.User));
     }
 }

@@ -1,6 +1,5 @@
 ﻿using Business.Abstracts;
-using Core.DTOs.UserClaim;
-using Core.Entities.Security;
+using Entity.DTOs.UserClaims;
 using Microsoft.AspNetCore.Mvc;
 
 namespace WebAPI.Controllers;
@@ -22,15 +21,17 @@ public class UserClaimsController(IUserClaimService userClaimService) : Controll
     }
 
     [HttpPost("Add")]
-    public async Task<IActionResult> Add([FromBody] AddUserClaimDto userClaimDto)
+    public async Task<IActionResult> Add([FromBody] AddUserClaimDto addUserClaimDto)
     {
-        return Ok(await userClaimService.AddAsync(userClaimDto));
+        await userClaimService.AddAsync(addUserClaimDto);
+        return Ok();
     }
 
     [HttpPut("Update")]
-    public async Task<IActionResult> Update([FromBody] UpdateUserClaimDto userClaimDto)
+    public async Task<IActionResult> Update([FromBody] UpdateUserClaimDto updateUserClaimDto)
     {
-        return Ok(await userClaimService.UpdateAsync(userClaimDto));
+        await userClaimService.UpdateAsync(updateUserClaimDto);
+        return Ok();
     }
 
     [HttpDelete("Delete/{id}")]

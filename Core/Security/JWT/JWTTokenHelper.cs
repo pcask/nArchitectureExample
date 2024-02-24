@@ -18,7 +18,7 @@ public class JWTTokenHelper : ITokenHelper
         symmetricSecurityKey = new(Encoding.UTF8.GetBytes(tokenOptions.SecurityKey));
     }
 
-    public AccessToken GenerateAccessToken(User user)
+    public AccessToken GenerateAccessToken(AppUser user)
     {
         var claims = user.UserClaims
              .Select(uc => $"{uc.Claim.Group}.{uc.Claim.Name}")

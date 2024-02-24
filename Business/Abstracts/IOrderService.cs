@@ -1,5 +1,5 @@
-﻿using Core.DTOs.Order;
-using Core.Entities;
+﻿using Entity.DTOs.Orders;
+using Entity.Entities;
 
 namespace Business.Abstracts;
 

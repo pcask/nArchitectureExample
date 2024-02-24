@@ -22,7 +22,65 @@ namespace DataAccess.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Core.Entities.Card", b =>
+            modelBuilder.Entity("Core.Entities.Security.AppUser", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AppUsers", (string)null);
+
+                    b.UseTptMappingStrategy();
+                });
+
+            modelBuilder.Entity("Core.Entities.Security.Claim", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Group")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Claims");
+                });
+
+            modelBuilder.Entity("Core.Entities.Security.UserClaim", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("AppUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ClaimId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClaimId");
+
+                    b.HasIndex("AppUserId", "ClaimId")
+                        .IsUnique();
+
+                    b.ToTable("UserClaims");
+                });
+
+            modelBuilder.Entity("Entity.Entities.Card", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -49,7 +107,7 @@ namespace DataAccess.Migrations
                     b.ToTable("Cards");
                 });
 
-            modelBuilder.Entity("Core.Entities.CardTransaction", b =>
+            modelBuilder.Entity("Entity.Entities.CardTransaction", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -71,7 +129,7 @@ namespace DataAccess.Migrations
                     b.ToTable("CardTransactions");
                 });
 
-            modelBuilder.Entity("Core.Entities.CardType", b =>
+            modelBuilder.Entity("Entity.Entities.CardType", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -86,7 +144,7 @@ namespace DataAccess.Migrations
                     b.ToTable("CardTypes");
                 });
 
-            modelBuilder.Entity("Core.Entities.Category", b =>
+            modelBuilder.Entity("Entity.Entities.Category", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -101,7 +159,7 @@ namespace DataAccess.Migrations
                     b.ToTable("Categories");
                 });
 
-            modelBuilder.Entity("Core.Entities.Order", b =>
+            modelBuilder.Entity("Entity.Entities.Order", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -120,7 +178,7 @@ namespace DataAccess.Migrations
                     b.ToTable("Orders");
                 });
 
-            modelBuilder.Entity("Core.Entities.OrderDetail", b =>
+            modelBuilder.Entity("Entity.Entities.OrderDetail", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -144,7 +202,7 @@ namespace DataAccess.Migrations
                     b.ToTable("OrderDetails");
                 });
 
-            modelBuilder.Entity("Core.Entities.Product", b =>
+            modelBuilder.Entity("Entity.Entities.Product", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -170,7 +228,7 @@ namespace DataAccess.Migrations
                     b.ToTable("Products");
                 });
 
-            modelBuilder.Entity("Core.Entities.ProductTransaction", b =>
+            modelBuilder.Entity("Entity.Entities.ProductTransaction", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -189,37 +247,12 @@ namespace DataAccess.Migrations
                     b.ToTable("ProductTransactions");
                 });
 
-            modelBuilder.Entity("Core.Entities.Security.Claim", b =>
+            modelBuilder.Entity("Entity.Entities.User", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Group")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Claims");
-                });
-
-            modelBuilder.Entity("Core.Entities.Security.User", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                    b.HasBaseType("Core.Entities.Security.AppUser");
 
                     b.Property<short>("BirthYear")
                         .HasColumnType("smallint");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
@@ -245,42 +278,37 @@ namespace DataAccess.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("Id");
-
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("Core.Entities.Security.UserClaim", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                    b.HasOne("Core.Entities.Security.AppUser", "User")
+                        .WithMany("UserClaims")
+                        .HasForeignKey("AppUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.Property<Guid>("ClaimId")
-                        .HasColumnType("uniqueidentifier");
+                    b.HasOne("Core.Entities.Security.Claim", "Claim")
+                        .WithMany("UserClaims")
+                        .HasForeignKey("ClaimId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Navigation("Claim");
 
-                    b.HasKey("Id");
-
-                    b.HasIndex("ClaimId");
-
-                    b.HasIndex("UserId", "ClaimId")
-                        .IsUnique();
-
-                    b.ToTable("UserClaims");
+                    b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Core.Entities.Card", b =>
+            modelBuilder.Entity("Entity.Entities.Card", b =>
                 {
-                    b.HasOne("Core.Entities.CardType", "CardType")
+                    b.HasOne("Entity.Entities.CardType", "CardType")
                         .WithMany("Cards")
                         .HasForeignKey("CardTypeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Core.Entities.Security.User", "User")
+                    b.HasOne("Entity.Entities.User", "User")
                         .WithMany("Cards")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -291,9 +319,9 @@ namespace DataAccess.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Core.Entities.CardTransaction", b =>
+            modelBuilder.Entity("Entity.Entities.CardTransaction", b =>
                 {
-                    b.HasOne("Core.Entities.Card", "Card")
+                    b.HasOne("Entity.Entities.Card", "Card")
                         .WithMany("CardTransactions")
                         .HasForeignKey("CardId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -302,9 +330,9 @@ namespace DataAccess.Migrations
                     b.Navigation("Card");
                 });
 
-            modelBuilder.Entity("Core.Entities.Order", b =>
+            modelBuilder.Entity("Entity.Entities.Order", b =>
                 {
-                    b.HasOne("Core.Entities.Security.User", "User")
+                    b.HasOne("Entity.Entities.User", "User")
                         .WithMany("Orders")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -313,15 +341,15 @@ namespace DataAccess.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Core.Entities.OrderDetail", b =>
+            modelBuilder.Entity("Entity.Entities.OrderDetail", b =>
                 {
-                    b.HasOne("Core.Entities.Order", "Order")
+                    b.HasOne("Entity.Entities.Order", "Order")
                         .WithMany("OrderDetails")
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Core.Entities.ProductTransaction", "ProductTransaction")
+                    b.HasOne("Entity.Entities.ProductTransaction", "ProductTransaction")
                         .WithMany()
                         .HasForeignKey("ProductTransactionId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -332,9 +360,9 @@ namespace DataAccess.Migrations
                     b.Navigation("ProductTransaction");
                 });
 
-            modelBuilder.Entity("Core.Entities.Product", b =>
+            modelBuilder.Entity("Entity.Entities.Product", b =>
                 {
-                    b.HasOne("Core.Entities.Category", "Category")
+                    b.HasOne("Entity.Entities.Category", "Category")
                         .WithMany("Products")
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -343,9 +371,9 @@ namespace DataAccess.Migrations
                     b.Navigation("Category");
                 });
 
-            modelBuilder.Entity("Core.Entities.ProductTransaction", b =>
+            modelBuilder.Entity("Entity.Entities.ProductTransaction", b =>
                 {
-                    b.HasOne("Core.Entities.Product", "Product")
+                    b.HasOne("Entity.Entities.Product", "Product")
                         .WithMany("ProductTransactions")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -354,48 +382,18 @@ namespace DataAccess.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("Core.Entities.Security.UserClaim", b =>
+            modelBuilder.Entity("Entity.Entities.User", b =>
                 {
-                    b.HasOne("Core.Entities.Security.Claim", "Claim")
-                        .WithMany("UserClaims")
-                        .HasForeignKey("ClaimId")
+                    b.HasOne("Core.Entities.Security.AppUser", null)
+                        .WithOne()
+                        .HasForeignKey("Entity.Entities.User", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("Core.Entities.Security.User", "User")
-                        .WithMany("UserClaims")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Claim");
-
-                    b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Core.Entities.Card", b =>
+            modelBuilder.Entity("Core.Entities.Security.AppUser", b =>
                 {
-                    b.Navigation("CardTransactions");
-                });
-
-            modelBuilder.Entity("Core.Entities.CardType", b =>
-                {
-                    b.Navigation("Cards");
-                });
-
-            modelBuilder.Entity("Core.Entities.Category", b =>
-                {
-                    b.Navigation("Products");
-                });
-
-            modelBuilder.Entity("Core.Entities.Order", b =>
-                {
-                    b.Navigation("OrderDetails");
-                });
-
-            modelBuilder.Entity("Core.Entities.Product", b =>
-                {
-                    b.Navigation("ProductTransactions");
+                    b.Navigation("UserClaims");
                 });
 
             modelBuilder.Entity("Core.Entities.Security.Claim", b =>
@@ -403,13 +401,36 @@ namespace DataAccess.Migrations
                     b.Navigation("UserClaims");
                 });
 
-            modelBuilder.Entity("Core.Entities.Security.User", b =>
+            modelBuilder.Entity("Entity.Entities.Card", b =>
+                {
+                    b.Navigation("CardTransactions");
+                });
+
+            modelBuilder.Entity("Entity.Entities.CardType", b =>
+                {
+                    b.Navigation("Cards");
+                });
+
+            modelBuilder.Entity("Entity.Entities.Category", b =>
+                {
+                    b.Navigation("Products");
+                });
+
+            modelBuilder.Entity("Entity.Entities.Order", b =>
+                {
+                    b.Navigation("OrderDetails");
+                });
+
+            modelBuilder.Entity("Entity.Entities.Product", b =>
+                {
+                    b.Navigation("ProductTransactions");
+                });
+
+            modelBuilder.Entity("Entity.Entities.User", b =>
                 {
                     b.Navigation("Cards");
 
                     b.Navigation("Orders");
-
-                    b.Navigation("UserClaims");
                 });
 #pragma warning restore 612, 618
         }

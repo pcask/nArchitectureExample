@@ -1,6 +1,4 @@
-﻿using Core.Entities;
-using Microsoft.EntityFrameworkCore.Query;
-using System.Linq.Expressions;
+﻿using Entity.Entities;
 
 namespace Business.Abstracts;
 

@@ -1,5 +1,5 @@
 ﻿using Business.Abstracts;
-using Core.DTOs.User;
+using Entity.DTOs.Users;
 using Microsoft.AspNetCore.Mvc;
 
 namespace WebAPI.Controllers;
@@ -9,9 +9,9 @@ namespace WebAPI.Controllers;
 public class AuthsController(IAuthService authService) : ControllerBase
 {
     [HttpPost("Register")]
-    public async Task<IActionResult> Register([FromBody] UserRegisterDto userRegisterDto)
+    public async Task<IActionResult> Register([FromBody] UserAddDto userAddDto)
     {
-        await authService.RegisterAsync(userRegisterDto);
+        await authService.RegisterAsync(userAddDto);
         return Ok();
     }
 

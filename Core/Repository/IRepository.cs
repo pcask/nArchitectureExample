@@ -1,5 +1,6 @@
 ﻿using Core.Entities.Common;
 using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.Storage;
 using System.Linq.Expressions;
 
 namespace Core.Repository;
@@ -7,6 +8,9 @@ namespace Core.Repository;
 public interface IRepository<TEntity>
     where TEntity : Entity
 {
+    IDbContextTransaction BeginTransaction();
+    Task<IDbContextTransaction> BeginTransactionAsync();
+
     IEnumerable<TEntity> GetAll(Expression<Func<TEntity, bool>> filter = null,
                                 Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, dynamic>> include = null,
                                 Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> orderBy = null,
