@@ -22,10 +22,11 @@ public class CacheRemoveAspect : MethodInterception
     public override void OnSuccess(IInvocation invocation)
     {
         string baseName = invocation.Method.DeclaringType.FullName;
-        var manager = ServicesTool.GetAutofacServiceByName(baseName);
+
+        var managerActivator = ServicesTool.GetAutofacActivator(invocation.TargetType);
 
         // İlgili sınıf içerisindeki cache'lenebilecek olan tüm method'ları ele alalım;
-        var methods = manager.LimitType.GetMethods().Where(m => m.GetCustomAttributes<CacheAspect>().Any()).ToList();
+        var methods = managerActivator.LimitType.GetMethods().Where(m => m.GetCustomAttributes<CacheAspect>().Any()).ToList();
 
         if (methods.Count > 0)
         {

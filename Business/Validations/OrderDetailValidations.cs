@@ -1,7 +1,7 @@
-﻿using Business.Exceptions;
+﻿using Core.Exceptions;
 using Entity.Entities;
 
-namespace Business.Validations;
+namespace Core.Validations;
 
 public class OrderDetailValidations
 {

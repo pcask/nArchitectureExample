@@ -1,14 +1,14 @@
 ﻿using Autofac;
 using Autofac.Extensions.DependencyInjection;
-using Business.Middlewares;
-using Business;
-using Business.DependencyResolvers.Autofac;
+using Core.Middlewares;
 using Core;
+using Core.DependencyResolvers.Autofac;
 using Infrastructure;
 using Core.Utilities;
 using DataAccess;
 using DataAccess.Contexts;
 using Microsoft.EntityFrameworkCore;
+using WebAPI;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,8 +17,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
+// Service'lerin kullanımı için yazmış olduğumuz extension method'lar;
+builder.Services.RegisterWebApiServices();
 builder.Services.RegisterCoreServices();
 builder.Services.RegisterInfrastructureServices();
 builder.Services.RegisterDataAccessServices();
@@ -32,6 +33,7 @@ builder.Host.ConfigureContainer<ContainerBuilder>(builder =>
 
 // IoC container'a eklenen tüm service'lere global olarak erişmek için ServicesTool'umuza IServiceCollection'ı gönderiyoruz.
 ServicesTool.CreateServiceProvider(builder.Services);
+
 
 var app = builder.Build();
 
@@ -47,7 +49,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
+
 
 // Custom exception middleware
 app.UseCustomExceptionHandler();
@@ -57,5 +61,6 @@ app.MapControllers();
 // Eğer ki varsa yeni eklenen migration onları otomatik olarak Db'ye yansıtacak. (Manuel Update-Database'e son! Halı, kilim 5dk da dikilir, hemen teslim edilir.)
 await ServicesTool.GetService<NADbContext>().Database.MigrateAsync();
 
+BusinessRoleManager.RegisterBusinessRoles();
 
 app.Run();

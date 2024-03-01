@@ -7,7 +7,7 @@ public class UserUpdateDto
     public string UserName { get; set; }
     public string Email { get; set; }
 
-    public User GetUser(User beUpdatedUser)
+    public User GetEntity(User beUpdatedUser)
     {
         beUpdatedUser.UserName = UserName;
         beUpdatedUser.Email = Email;

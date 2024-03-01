@@ -1,17 +1,16 @@
-﻿using Business.Exceptions;
+﻿using Core.Exceptions;
 using Core.CrossCuttingConcerns.Validation;
 using DataAccess.Abstracts;
+using Business.Validations.Common;
+using Business.Validations.Users;
 
-namespace Business.Validations.Users;
+namespace Core.Validations.Users;
 
-public class UserDeleteValidations(IUserRepository userRepository)
+public class UserDeleteValidations(IUserRepository userRepository) : UserValidations(userRepository)
 {
     [ValidationMethod(Priority: 0)]
-    public async Task<ValidationReturn> CheckExistenceAsync(Guid id)
+    public override async Task CheckExistenceAsync(Guid id)
     {
-        return new()
-        {
-            User = await userRepository.GetAsync(u => u.Id == id) ?? throw new ValidationException("User not found")
-        };
+        await base.CheckExistenceAsync(id);
     }
 }

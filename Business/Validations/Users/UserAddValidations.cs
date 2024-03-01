@@ -1,11 +1,11 @@
-﻿using Business.Exceptions;
-using Business.Validations.Helper;
+﻿using Core.Exceptions;
 using Core.Abstracts;
 using Core.CrossCuttingConcerns.Validation;
 using DataAccess.Abstracts;
 using Entity.DTOs.Users;
+using Business.Validations.Helper;
 
-namespace Business.Validations.Users
+namespace Core.Validations.Users
 {
     // Autofac Keyed Service' in çözümlenmesi için KeyFilter kullanımı;
 

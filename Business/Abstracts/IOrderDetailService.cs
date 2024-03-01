@@ -1,6 +1,6 @@
 ﻿using Entity.Entities;
 
-namespace Business.Abstracts;
+namespace Core.Abstracts;
 
 public interface IOrderDetailService
 {
@@ -18,4 +18,5 @@ public interface IOrderDetailService
     Task<OrderDetail> AddAsync(OrderDetail orderDetail);
     Task<OrderDetail> UpdateAsync(OrderDetail orderDetail);
     Task DeleteByIdAsync(Guid id);
+    Task<IEnumerable<OrderDetail>> GetAllWithProductTransactionByOrderIdAsync(Guid id);
 }

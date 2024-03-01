@@ -1,22 +1,23 @@
-﻿using Entity.DTOs.Orders;
-using Entity.Entities;
+﻿using Core.CrossCuttingConcerns.Validation;
+using Entity.DTOs.Orders;
+using Entity.ViewModels.Orders;
 
-namespace Business.Abstracts;
+namespace Core.Abstracts;
 
 public interface IOrderService
 {
-    IEnumerable<Order> GetAll();
-    Order? GetById(Guid id);
+    IEnumerable<OrderListVm> GetAll();
+    OrderVm? GetById(Guid id);
 
-    Order Add(AddOrderDto addOrderDto);
-    Order Update(Order order);
+    void Add(OrderAddDto addOrderDto);
+    void Update(Guid id, OrderUpdateDto orderUpdateDto);
     void DeleteById(Guid id);
 
 
-    Task<IEnumerable<Order>> GetAllAsync();
-    Task<Order?> GetByIdAsync(Guid id);
+    Task<IEnumerable<OrderListVm>> GetAllAsync();
+    Task<OrderVm?> GetByIdAsync(Guid id);
 
-    Task<Order> AddAsync(AddOrderDto addOrderDto);
-    Task<Order> UpdateAsync(Order order);
+    Task AddAsync(OrderAddDto addOrderDto);
+    Task UpdateAsync(Guid id, OrderUpdateDto orderUpdateDto);
     Task DeleteByIdAsync(Guid id);
 }

@@ -1,73 +1,97 @@
-﻿using Business.Abstracts;
-using Business.Validations;
+﻿using Core.Abstracts;
 using Entity.Entities;
 using DataAccess.Abstracts;
+using Entity.DTOs.ProductTransactions;
+using Core.CrossCuttingConcerns.Validation;
+using Entity.ViewModels.ProductTransactions;
+using Core.Aspects.Autofac.Validation;
+using Business.Validations.ProductTransactions;
+using Core.Exceptions;
+using Business.Concretes.Common;
 
-namespace Business.Concretes;
+namespace Core.Concretes;
 
-public class ProductTransactionManager(
-                                        IProductTransactionRepository productTransactionRepository,
-                                        ProductTransactionValidations productTransactionValidations)
-    : IProductTransactionService
+public class ProductTransactionManager(IProductTransactionRepository productTransactionRepository) : ManagerBase, IProductTransactionService
 {
-    public ProductTransaction Add(ProductTransaction productTransaction)
+    public ProductTransactionVm Add(ProductTransactionAddDto productTransactionAddDto)
     {
-        return productTransactionRepository.Add(productTransaction);
+        var pt = productTransactionAddDto.GetEntity();
+        pt.CreatedDate = DateTime.Now;
+
+        return ProductTransactionVm.GetModel(productTransactionRepository.Add(pt));
     }
 
-    public async Task<ProductTransaction> AddAsync(ProductTransaction productTransaction)
+    public async Task<ProductTransactionVm> AddAsync(ProductTransactionAddDto productTransactionAddDto)
     {
-        return await productTransactionRepository.AddAsync(productTransaction);
+        var pt = productTransactionAddDto.GetEntity();
+        pt.CreatedDate = DateTime.Now;
+
+        return ProductTransactionVm.GetModel(await productTransactionRepository.AddAsync(pt));
     }
 
+    [ValidationAspect(typeof(ProductTransactionDeleteValidations))]
     public void DeleteById(Guid id)
     {
-        var productTransaction = productTransactionRepository.Get(c => c.Id == id);
-
-        productTransactionValidations.CheckExistence(productTransaction);
-        productTransactionRepository.Delete(productTransaction);
+        productTransactionRepository.Delete(ValidationReturn.Entity);
     }
 
+    [ValidationAspect(typeof(ProductTransactionDeleteValidations))]
     public async Task DeleteByIdAsync(Guid id)
     {
-        var productTransaction = await productTransactionRepository.GetAsync(c => c.Id == id);
-
-        await productTransactionValidations.CheckExistenceAsync(productTransaction);
-        await productTransactionRepository.DeleteAsync(productTransaction);
+        await productTransactionRepository.DeleteAsync(ValidationReturn.Entity);
     }
 
-    public IEnumerable<ProductTransaction> GetAll() => productTransactionRepository.GetAll();
-
-    public async Task<IEnumerable<ProductTransaction>> GetAllAsync() => await productTransactionRepository.GetAllAsync();
-
-    public ProductTransaction? GetById(Guid id) => productTransactionRepository.Get(c => c.Id == id);
-
-    public async Task<ProductTransaction?> GetByIdAsync(Guid id) => await productTransactionRepository.GetAsync(c => c.Id == id);
-
-    public ProductTransaction Update(ProductTransaction productTransaction)
+    public IEnumerable<ProductTransactionListVm> GetAll()
     {
-        var _productTransaction = productTransactionRepository.Get(c => c.Id == productTransaction.Id);
-        productTransactionValidations.CheckExistence(_productTransaction);
-
-        return productTransactionRepository.Update(productTransaction);
+        return ProductTransactionListVm.GetModels(productTransactionRepository.GetAll());
     }
 
-    public async Task<ProductTransaction> UpdateAsync(ProductTransaction productTransaction)
+    public async Task<IEnumerable<ProductTransactionListVm>> GetAllAsync()
     {
-        var _productTransaction = await productTransactionRepository.GetAsync(c => c.Id == productTransaction.Id);
-        await productTransactionValidations.CheckExistenceAsync(_productTransaction);
-
-        return await productTransactionRepository.UpdateAsync(productTransaction);
+        return ProductTransactionListVm.GetModels(await productTransactionRepository.GetAllAsync());
     }
 
+    public async Task<IEnumerable<ProductTransactionListVm>> GetAllByProductIdAsync(Guid id)
+    {
+        return ProductTransactionListVm.GetModels(await productTransactionRepository.GetAllAsync(pt => pt.ProductId == id));
+    }
+
+    public ProductTransactionVm GetById(Guid id)
+    {
+        return ProductTransactionVm.GetModel(productTransactionRepository.Get(c => c.Id == id));
+    }
+
+    public async Task<ProductTransactionVm> GetByIdAsync(Guid id)
+    {
+        return ProductTransactionVm.GetModel(await productTransactionRepository.GetAsync(c => c.Id == id));
+    }
+
+    [ValidationAspect(typeof(ProductTransactionUpdateValidations))]
+    public void Update(Guid id, ProductTransactionUpdateDto productTransactionUpdateDto)
+    {
+        ProductTransaction pt = ValidationReturn.Entity;
+
+        pt.ProductId = productTransactionUpdateDto.ProductId;
+        pt.Quantity = productTransactionUpdateDto.Quantity;
+
+        productTransactionRepository.Update(pt);
+    }
+
+    [ValidationAspect(typeof(ProductTransactionUpdateValidations))]
+    public async Task UpdateAsync(Guid id, ProductTransactionUpdateDto productTransactionUpdateDto)
+    {
+        ProductTransaction pt = ValidationReturn.Entity;
+
+        pt.ProductId = productTransactionUpdateDto.ProductId;
+        pt.Quantity = productTransactionUpdateDto.Quantity;
+
+        await productTransactionRepository.UpdateAsync(pt);
+    }
+
+    [ValidationAspect(typeof(ProductTransactionValidations))]
     public IDictionary<Guid, int> GetStockByProductIdList(Guid[] productIdList)
     {
-        productTransactionValidations.CheckProductIdList(productIdList);
-
-        bool doesNotExist = productIdList.Any(id => productTransactionRepository.Get(pt => pt.ProductId == id) == null);
-        productTransactionValidations.IfAnyProductDoesNotExist(doesNotExist);
-
-        Dictionary<Guid, int> productDic = [];
+        Dictionary<Guid, int> productStocks = [];
 
         for (int i = 0; i < productIdList.Length; i++)
         {
@@ -75,18 +99,18 @@ public class ProductTransactionManager(
                            .GetAll(pt => pt.ProductId == productIdList[i])
                            .Sum(pt => pt.Quantity);
 
-            productDic[productIdList[i]] = quantity;
+            productStocks[productIdList[i]] = quantity;
         }
 
-        return productDic;
+        return productStocks;
     }
 
+    [ValidationAspect(typeof(ProductTransactionValidations))]
     public async Task<IDictionary<Guid, int>> GetStockByProductIdListAsync(Guid[] productIdList)
     {
-        await productTransactionValidations.CheckProductIdListAsync(productIdList);
         return await Task.Run(() =>
         {
-            Dictionary<Guid, int> productDic = [];
+            Dictionary<Guid, int> productStocks = [];
 
             for (int i = 0; i < productIdList.Length; i++)
             {
@@ -94,10 +118,28 @@ public class ProductTransactionManager(
                                .GetAll(pt => pt.ProductId == productIdList[i])
                                .Sum(pt => pt.Quantity);
 
-                productDic[productIdList[i]] = quantity;
+                productStocks[productIdList[i]] = quantity;
             }
 
-            return productDic;
+            return productStocks;
         });
+    }
+
+    public int GetStockByProductId(Guid id)
+    {
+        var productTransactions = productTransactionRepository.GetAll(pt => pt.ProductId == id);
+        if (!productTransactions.Any())
+            throw new ValidationException("The product was not found in stock!");
+
+        return productTransactions.Sum(pt => pt.Quantity);
+    }
+
+    public async Task<int> GetStockByProductIdAsync(Guid id)
+    {
+        var productTransactions = await productTransactionRepository.GetAllAsync(pt => pt.ProductId == id);
+        if (!productTransactions.Any())
+            throw new ValidationException("The product was not found in stock!");
+
+        return productTransactions.Sum(pt => pt.Quantity);
     }
 }

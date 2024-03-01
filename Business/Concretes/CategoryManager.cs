@@ -1,9 +1,9 @@
-﻿using Business.Abstracts;
-using Business.Validations;
+﻿using Core.Abstracts;
+using Core.Validations;
 using Entity.Entities;
 using DataAccess.Abstracts;
 
-namespace Business.Concretes;
+namespace Core.Concretes;
 
 public class CategoryManager(ICategoryRepository categoryRepository, CategoryValidations categoryValidations) : ICategoryService
 {

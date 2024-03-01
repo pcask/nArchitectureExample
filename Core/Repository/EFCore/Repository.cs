@@ -84,6 +84,8 @@ public abstract class Repository<TEntity>(DbContext context) : IRepository<TEnti
 
     public TEntity Update(TEntity entity)
     {
+        // Detach(entity).GetAwaiter().GetResult();
+
         context.Entry(entity).State = EntityState.Modified;
         context.SaveChanges();
 
@@ -92,19 +94,38 @@ public abstract class Repository<TEntity>(DbContext context) : IRepository<TEnti
 
     public async Task<TEntity> UpdateAsync(TEntity entity)
     {
+        // await Detach(entity);
+
         context.Entry(entity).State = EntityState.Modified;
         await context.SaveChangesAsync();
 
         return entity;
     }
+
     public void Delete(TEntity entity)
     {
         context.Entry(entity).State = EntityState.Deleted;
         context.SaveChanges();
     }
+
     public async Task DeleteAsync(TEntity entity)
     {
         context.Entry(entity).State = EntityState.Deleted;
         await context.SaveChangesAsync();
+    }
+
+    // Olurda bir entity'yi Tracked olarak ele alıp sonrasında bu entity'i update etmek istersek aşağıdaki gibi bir hata ile karşılaşırız;
+    // "The instance of entity type ‘X’ cannot be tracked because another instance with the same key value for {‘Id’} is already being tracked."
+    // Bu hatanın önüne geçmek için update method'larımız içerisinde, öncelikli olarak aşağıdaki Detach methodunu çağırabiliriz.
+    private async Task Detach(TEntity entity)
+    {
+        if (entity is Entity<Guid>)
+        {
+            var foundedEntity = context.Set<TEntity>().Local.FirstOrDefault(e => Cast(e).Id == Cast(entity).Id);
+            if (foundedEntity != null)
+                context.Entry(foundedEntity).State = EntityState.Detached;
+        }
+
+        Entity<Guid> Cast(TEntity entity) => (Entity<Guid>)(object)entity;
     }
 }

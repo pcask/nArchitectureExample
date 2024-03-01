@@ -8,5 +8,10 @@ public class Order : Entity<Guid>
     public DateTime CreatedDate { get; set; }
 
     public virtual User User { get; set; }
-    public virtual ICollection<OrderDetail> OrderDetails { get; set; } = [];
+    public virtual ICollection<OrderDetail> OrderDetails { get; set; }
+
+    public Order()
+    {
+        OrderDetails = [];
+    }
 }

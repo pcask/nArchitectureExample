@@ -1,9 +1,9 @@
-﻿using Business.Abstracts;
-using Business.Validations;
+﻿using Core.Abstracts;
+using Core.Validations;
 using DataAccess.Abstracts;
 using Entity.Entities;
 
-namespace Business.Concretes;
+namespace Core.Concretes;
 
 public class CardManager(ICardRepository cardRepository, CardValidations cardValidations) : ICardService
 {

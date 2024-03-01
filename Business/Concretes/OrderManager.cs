@@ -1,37 +1,57 @@
-﻿using Business.Abstracts;
-using Business.Validations;
+﻿using Core.Abstracts;
 using Entity.DTOs.Orders;
 using Entity.Entities;
 using DataAccess.Abstracts;
 using Core.Aspects.Autofac.Transaction;
+using Core.Aspects.Autofac.Logging;
+using Core.Aspects.Autofac.Validation;
+using Business.Validations.Orders;
+using Core.CrossCuttingConcerns.Validation;
+using Entity.DTOs.ProductTransactions;
+using Core.Exceptions;
+using Entity.ViewModels.Orders;
+using Business.Concretes.Common;
+using Core.Aspects.Autofac.Security;
+using Core.CrossCuttingConcerns.Security;
 
-namespace Business.Concretes;
+namespace Core.Concretes;
 
+[MustBeAuthorized]
 public class OrderManager(IOrderRepository orderRepository,
                           OrderValidations orderValidations,
                           IProductTransactionService productTransactionService,
                           IOrderDetailService orderDetailService)
-    : IOrderService
+    : ManagerBase, IOrderService
 {
-
+    [LogAspect]
+    [SecurityAspect]
     [TransactionScopeAspect]
-    public Order Add(AddOrderDto addOrderDto)
+    [ValidationAspect(typeof(OrderAddValidations))]
+    public void Add(OrderAddDto orderAddDto)
     {
-        orderValidations.CheckProductList(addOrderDto.ProductTransactions);
-        orderValidations.CheckProductQuantity(addOrderDto.ProductTransactions);
-
-        var productStocks = productTransactionService.GetStockByProductIdList(addOrderDto.ProductTransactions.Select(pt => pt.Id).ToArray());
-        orderValidations.CheckProductStocks(addOrderDto.ProductTransactions, productStocks);
-
         var order = orderRepository.Add(new()
         {
-            UserId = addOrderDto.UserId,
+            UserId = orderAddDto.UserId,
             CreatedDate = DateTime.UtcNow
         });
 
-        addOrderDto.ProductTransactions.ToList().ForEach(pt =>
+        // ProductTransaction listesinde varsa tekrar eden ProductId'leri birleştirerek productId bazında tek bir OrderDetail oluşmasını sağlamak için;
+        var productTransactions = orderAddDto.ProductTransactions
+                                             .GroupBy(pt => pt.ProductId)
+                                             .Select(group =>
+                                             {
+                                                 return new ProductTransactionAddDto()
+                                                 {
+                                                     ProductId = group.Key,
+                                                     Quantity = group.Sum(pt => pt.Quantity)
+                                                 };
+                                             }).ToList();
+
+        productTransactions.ForEach(pt =>
         {
-            pt.Quantity = pt.Quantity > 0 ? -1 * pt.Quantity : pt.Quantity;
+            pt.Quantity *= -1;
+            pt.CreatedDate = DateTime.UtcNow;
+
             var addedProductTransaction = productTransactionService.Add(pt);
 
             orderDetailService.Add(new()
@@ -41,81 +61,167 @@ public class OrderManager(IOrderRepository orderRepository,
                 Status = "Preparing"
             });
         });
-
-        return order;
     }
 
+    [LogAspect]
+    [SecurityAspect]
+    [ValidationAspect(typeof(OrderAddValidations))]
     [TransactionScopeAspect]
-    public async Task<Order> AddAsync(AddOrderDto addOrderDto)
+    public async Task AddAsync(OrderAddDto orderAddDto)
     {
-        return await Task.Run(() =>
-         {
-             orderValidations.CheckProductList(addOrderDto.ProductTransactions);
-             orderValidations.CheckProductQuantity(addOrderDto.ProductTransactions);
+        var order = orderRepository.Add(new()
+        {
+            UserId = orderAddDto.UserId,
+            CreatedDate = DateTime.UtcNow
+        });
 
-             var productStocks = productTransactionService.GetStockByProductIdList(addOrderDto.ProductTransactions.Select(pt => pt.Id).ToArray());
-             orderValidations.CheckProductStocks(addOrderDto.ProductTransactions, productStocks);
+        // ProductTransaction listesinde varsa tekrar eden ProductId'leri birleştirerek productId bazında tek bir OrderDetail oluşmasını sağlamak için;
+        var productTransactions = orderAddDto.ProductTransactions
+                                             .GroupBy(pt => pt.ProductId)
+                                             .Select(group =>
+                                             {
+                                                 return new ProductTransactionAddDto()
+                                                 {
+                                                     ProductId = group.Key,
+                                                     Quantity = group.Sum(pt => pt.Quantity)
+                                                 };
+                                             });
 
-             var order = orderRepository.Add(new()
-             {
-                 UserId = addOrderDto.UserId,
-                 CreatedDate = DateTime.UtcNow
-             });
+        foreach (var pt in productTransactions)
+        {
+            pt.Quantity *= -1;
+            pt.CreatedDate = DateTime.UtcNow;
 
-             addOrderDto.ProductTransactions.ToList().ForEach(pt =>
-             {
-                 pt.Quantity = pt.Quantity > 0 ? -1 * pt.Quantity : pt.Quantity;
-                 var addedProductTransaction = productTransactionService.Add(pt);
+            var addedProductTransaction = await productTransactionService.AddAsync(pt);
 
-                 orderDetailService.Add(new()
-                 {
-                     OrderId = order.Id,
-                     ProductTransactionId = addedProductTransaction.Id,
-                     Status = "Preparing"
-                 });
-             });
-
-             return order;
-         });
+            await orderDetailService.AddAsync(new()
+            {
+                OrderId = order.Id,
+                ProductTransactionId = addedProductTransaction.Id,
+                Status = "Preparing"
+            });
+        }
     }
 
+    [SecurityAspect]
+    [ValidationAspect(typeof(OrderDeleteValidations))]
     public void DeleteById(Guid id)
     {
-        var order = orderRepository.Get(c => c.Id == id);
-
-        orderValidations.CheckExistence(order);
-        orderRepository.Delete(order);
+        orderRepository.Delete(ValidationReturn.Entity);
     }
 
+    [SecurityAspect]
+    [ValidationAspect(typeof(OrderDeleteValidations))]
     public async Task DeleteByIdAsync(Guid id)
     {
-        var order = await orderRepository.GetAsync(c => c.Id == id);
-
-        await orderValidations.CheckExistenceAsync(order);
-        await orderRepository.DeleteAsync(order);
+        await orderRepository.DeleteAsync(ValidationReturn.Entity);
     }
 
-    public IEnumerable<Order> GetAll() => orderRepository.GetAll();
-
-    public async Task<IEnumerable<Order>> GetAllAsync() => await orderRepository.GetAllAsync();
-
-    public Order? GetById(Guid id) => orderRepository.Get(c => c.Id == id);
-
-    public async Task<Order?> GetByIdAsync(Guid id) => await orderRepository.GetAsync(c => c.Id == id);
-
-    public Order Update(Order order)
+    [SecurityAspect]
+    public IEnumerable<OrderListVm> GetAll()
     {
-        var _order = orderRepository.Get(c => c.Id == order.Id);
-        orderValidations.CheckExistence(_order);
-
-        return orderRepository.Update(order);
+        return OrderListVm.GetModels(orderRepository.GetAll());
     }
 
-    public async Task<Order> UpdateAsync(Order order)
+    [SecurityAspect]
+    public async Task<IEnumerable<OrderListVm>> GetAllAsync()
     {
-        var _order = await orderRepository.GetAsync(c => c.Id == order.Id);
-        await orderValidations.CheckExistenceAsync(_order);
+        return OrderListVm.GetModels(await orderRepository.GetAllAsync());
+    }
 
-        return await orderRepository.UpdateAsync(order);
+    [SecurityAspect]
+    [ValidationAspect(typeof(OrderValidations))]
+    public OrderVm GetById(Guid id)
+    {
+        return OrderVm.GetModel(ValidationReturn.Entity);
+    }
+
+    [SecurityAspect]
+    [ValidationAspect(typeof(OrderValidations))]
+    public async Task<OrderVm> GetByIdAsync(Guid id)
+    {
+        return OrderVm.GetModel(ValidationReturn.Entity);
+    }
+
+    [SecurityAspect]
+    [TransactionScopeAspect]
+    [ValidationAspect(typeof(OrderUpdateValidations))]
+    public void Update(Guid id, OrderUpdateDto orderUpdateDto)
+    {
+        Order order = ValidationReturn.Entity;
+
+        order.UserId = orderUpdateDto.UserId;
+        orderRepository.Update(order);
+
+        // ProductId bazında tekrarlanan verileri birleştirmek için;
+        var productTransactions = orderUpdateDto.ProductTransactions.GroupBy(pt => pt.ProductId).Select(group =>
+        {
+            return new ProductTransactionUpdateDto()
+            {
+                ProductId = group.Key,
+                Quantity = group.Sum(pt => pt.Quantity)
+            };
+        }).ToList();
+
+        foreach (var od in order.OrderDetails)
+        {
+            // Sadece status'ü "Preparing" olan productTransaction'lar güncellenebilir diyelim;
+            var productTransaction = productTransactions.Find(pt => pt.ProductId == od.ProductTransaction.ProductId && od.Status == "Preparing");
+
+            if (productTransaction != null)
+            {
+                var beUpdatedPt = od.ProductTransaction;
+
+                var stockBeforeOrderIsAdded = productTransactionService.GetStockByProductId(beUpdatedPt.ProductId) - beUpdatedPt.Quantity;
+
+                beUpdatedPt.Quantity = -1 * productTransaction.Quantity;
+
+                if (stockBeforeOrderIsAdded + beUpdatedPt.Quantity < 0)
+                    throw new ValidationException($"There is not enough stock for {productTransaction.ProductId}");
+
+                productTransactionService.Update(beUpdatedPt.Id, ProductTransactionUpdateDto.GetModel(beUpdatedPt));
+            }
+        }
+    }
+
+    [SecurityAspect]
+    [TransactionScopeAspect]
+    [ValidationAspect(typeof(OrderUpdateValidations))]
+    public async Task UpdateAsync(Guid id, OrderUpdateDto orderUpdateDto)
+    {
+        Order order = ValidationReturn.Entity;
+
+        order.UserId = orderUpdateDto.UserId;
+        await orderRepository.UpdateAsync(order);
+
+        // ProductId bazında tekrarlanan verileri birleştirmek için;
+        var productTransactions = orderUpdateDto.ProductTransactions.GroupBy(pt => pt.ProductId).Select(group =>
+        {
+            return new ProductTransactionUpdateDto()
+            {
+                ProductId = group.Key,
+                Quantity = group.Sum(pt => pt.Quantity)
+            };
+        }).ToList();
+
+        foreach (var od in order.OrderDetails)
+        {
+            // Sadece status'ü "Preparing" olan productTransaction'lar güncellenebilir diyelim;
+            var productTransaction = productTransactions.Find(pt => pt.ProductId == od.ProductTransaction.ProductId && od.Status == "Preparing");
+
+            if (productTransaction != null)
+            {
+                var beUpdatedPt = od.ProductTransaction;
+
+                var stockBeforeOrderIsAdded = (await productTransactionService.GetStockByProductIdAsync(beUpdatedPt.ProductId)) - beUpdatedPt.Quantity;
+
+                beUpdatedPt.Quantity = -1 * productTransaction.Quantity;
+
+                if (stockBeforeOrderIsAdded + beUpdatedPt.Quantity < 0)
+                    throw new ValidationException($"There is not enough stock for {productTransaction.ProductId}");
+
+                await productTransactionService.UpdateAsync(beUpdatedPt.Id, ProductTransactionUpdateDto.GetModel(beUpdatedPt));
+            }
+        }
     }
 }

@@ -1,4 +1,4 @@
-﻿using Business.Exceptions;
+﻿using Core.Exceptions;
 using System.Net.Mail;
 
 namespace Business.Validations.Helper;

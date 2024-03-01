@@ -11,5 +11,10 @@ public class Card : Entity<Guid>
 
     public virtual User User { get; set; }
     public virtual CardType CardType { get; set; }
-    public virtual ICollection<CardTransaction> CardTransactions { get; set; } = [];
+    public virtual ICollection<CardTransaction> CardTransactions { get; set; }
+
+    public Card()
+    {
+        CardTransactions = [];
+    }
 }

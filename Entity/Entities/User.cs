@@ -12,7 +12,13 @@ namespace Entity.Entities
         public byte[] PasswordHash { get; set; }
         public byte[] PasswordSalt { get; set; }
 
-        public virtual ICollection<Order> Orders { get; set; } = [];
-        public virtual ICollection<Card> Cards { get; set; } = [];
+        public virtual ICollection<Order> Orders { get; set; }
+        public virtual ICollection<Card> Cards { get; set; }
+
+        public User()
+        {
+            Orders = [];
+            Cards = [];
+        }
     }
 }

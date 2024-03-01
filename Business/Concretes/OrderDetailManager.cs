@@ -1,9 +1,10 @@
-﻿using Business.Abstracts;
-using Business.Validations;
+﻿using Core.Abstracts;
+using Core.Validations;
 using Entity.Entities;
 using DataAccess.Abstracts;
+using Microsoft.EntityFrameworkCore;
 
-namespace Business.Concretes;
+namespace Core.Concretes;
 
 public class OrderDetailManager(IOrderDetailRepository orderDetailRepository, OrderDetailValidations orderDetailValidations) : IOrderDetailService
 {
@@ -36,6 +37,11 @@ public class OrderDetailManager(IOrderDetailRepository orderDetailRepository, Or
     public IEnumerable<OrderDetail> GetAll() => orderDetailRepository.GetAll();
 
     public async Task<IEnumerable<OrderDetail>> GetAllAsync() => await orderDetailRepository.GetAllAsync();
+
+    public async Task<IEnumerable<OrderDetail>> GetAllWithProductTransactionByOrderIdAsync(Guid id)
+    {
+        return await orderDetailRepository.GetAllAsync(od => od.OrderId == id, include: qOD => qOD.Include(od => od.ProductTransaction));
+    }
 
     public OrderDetail? GetById(Guid id) => orderDetailRepository.Get(c => c.Id == id);
 

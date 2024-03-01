@@ -1,4 +1,4 @@
-﻿using Business.Abstracts;
+﻿using Core.Abstracts;
 using Entity.DTOs.UserClaims;
 using Microsoft.AspNetCore.Mvc;
 
@@ -21,14 +21,14 @@ public class UserClaimsController(IUserClaimService userClaimService) : Controll
     }
 
     [HttpPost("Add")]
-    public async Task<IActionResult> Add([FromBody] AddUserClaimDto addUserClaimDto)
+    public async Task<IActionResult> Add([FromBody] UserClaimAddDto addUserClaimDto)
     {
         await userClaimService.AddAsync(addUserClaimDto);
         return Ok();
     }
 
     [HttpPut("Update")]
-    public async Task<IActionResult> Update([FromBody] UpdateUserClaimDto updateUserClaimDto)
+    public async Task<IActionResult> Update([FromBody] UserClaimUpdateDto updateUserClaimDto)
     {
         await userClaimService.UpdateAsync(updateUserClaimDto);
         return Ok();

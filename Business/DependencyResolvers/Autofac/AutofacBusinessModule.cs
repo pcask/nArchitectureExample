@@ -1,9 +1,12 @@
 ﻿using Autofac;
 using Module = Autofac.Module;
 using System.Reflection;
-using static Business.DependencyResolvers.Autofac.AutofacHelper;
+using static Core.DependencyResolvers.Autofac.AutofacHelper;
+using Core.Abstracts;
+using System.ComponentModel.DataAnnotations;
+using Core.CrossCuttingConcerns.Validation;
 
-namespace Business.DependencyResolvers.Autofac;
+namespace Core.DependencyResolvers.Autofac;
 
 public class AutofacBusinessModule : Module
 {
@@ -21,7 +24,7 @@ public class AutofacBusinessModule : Module
         // builder.RegisterType<UserValidations>().WithAttributeFiltering().InstancePerLifetimeScope();
 
         // Validation'ların sahip olduğu method'ları intercept etmiyeceğimiz için buradan kayıt olmalarına gerek yok. 
-        //RegisterByEndName(builder, Assembly.GetExecutingAssembly(), "Validations", ServiceLifeTime.InstancePerLifetimeScope, false);
+        // RegisterByEndName(builder, Assembly.GetExecutingAssembly(), "Validations", ServiceLifeTime.InstancePerLifetimeScope, false);
 
 
         //builder.RegisterType<UserManager>().As<IUserService>().InstancePerLifetimeScope();
@@ -38,9 +41,10 @@ public class AutofacBusinessModule : Module
         //builder.RegisterType<CardTransactionManager>().As<ICardTransactionService>().InstancePerLifetimeScope();
         RegisterByEndName(builder, Assembly.GetExecutingAssembly(), "Manager", ServiceLifeTime.InstancePerLifetimeScope);
 
+        // Manager'ları ayrıca interface'siz kaydediyorum, runtime'da direkt olarak concerete tip ile servis çözümlemesi yapabilmek için.
+        //RegisterByEndName(builder, Assembly.GetExecutingAssembly(), "Manager", ServiceLifeTime.InstancePerLifetimeScope, false);
 
         // Autofac IoC container'a eklenen tüm service'leri ele almak için; 
-        // var registeredServices = builder.Build().ComponentRegistry.Registrations;
-
+        //var registeredServices = builder.Build().ComponentRegistry.Registrations;
     }
 }

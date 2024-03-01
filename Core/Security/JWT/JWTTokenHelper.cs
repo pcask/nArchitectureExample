@@ -48,8 +48,7 @@ public class JWTTokenHelper : ITokenHelper
 
     public async Task<bool> ValidateTokenAsync(string token)
     {
-        JsonWebTokenHandler handler = new();
-        var result = await handler.ValidateTokenAsync(token, new TokenValidationParameters()
+        var result = await new JsonWebTokenHandler().ValidateTokenAsync(token, new TokenValidationParameters()
         {
             ValidateIssuer = true,
             ValidateAudience = true,
@@ -58,7 +57,7 @@ public class JWTTokenHelper : ITokenHelper
 
             ValidIssuer = tokenOptions.Issuer,
             ValidAudience = tokenOptions.Audience,
-            LifetimeValidator = (notBefore, expires, securityToken, validationParameters) => expires != null && expires > DateTime.UtcNow,
+            //LifetimeValidator = (notBefore, expires, securityToken, validationParameters) => expires != null && expires > DateTime.UtcNow,
             IssuerSigningKey = symmetricSecurityKey
         });
 

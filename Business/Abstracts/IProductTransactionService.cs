@@ -1,23 +1,28 @@
-﻿using Entity.Entities;
+﻿using Entity.DTOs.ProductTransactions;
+using Entity.ViewModels.ProductTransactions;
 
-namespace Business.Abstracts;
+namespace Core.Abstracts;
 
 public interface IProductTransactionService
 {
-    IEnumerable<ProductTransaction> GetAll();
-    ProductTransaction? GetById(Guid id);
+    IEnumerable<ProductTransactionListVm> GetAll();
+    ProductTransactionVm GetById(Guid id);
 
-    ProductTransaction Add(ProductTransaction productTransaction);
-    ProductTransaction Update(ProductTransaction productTransaction);
+    ProductTransactionVm Add(ProductTransactionAddDto productTransactionAddDto);
+    void Update(Guid id, ProductTransactionUpdateDto productTransactionUpdateDto);
     void DeleteById(Guid id);
     IDictionary<Guid, int> GetStockByProductIdList(Guid[] productIdList);
 
 
-    Task<IEnumerable<ProductTransaction>> GetAllAsync();
-    Task<ProductTransaction?> GetByIdAsync(Guid id);
+    Task<IEnumerable<ProductTransactionListVm>> GetAllAsync();
+    Task<IEnumerable<ProductTransactionListVm>> GetAllByProductIdAsync(Guid id);
+    Task<ProductTransactionVm> GetByIdAsync(Guid id);
 
-    Task<ProductTransaction> AddAsync(ProductTransaction productTransaction);
-    Task<ProductTransaction> UpdateAsync(ProductTransaction productTransaction);
+    Task<ProductTransactionVm> AddAsync(ProductTransactionAddDto productTransactionAddDto);
+    Task UpdateAsync(Guid id, ProductTransactionUpdateDto productTransactionUpdateDto);
     Task DeleteByIdAsync(Guid id);
     Task<IDictionary<Guid, int>> GetStockByProductIdListAsync(Guid[] productIdList);
+
+    int GetStockByProductId(Guid id);
+    Task<int> GetStockByProductIdAsync(Guid id);
 }

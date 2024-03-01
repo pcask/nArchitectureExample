@@ -1,5 +1,5 @@
-﻿using Business.Abstracts;
-using Core.Entities.Security;
+﻿using Core.Abstracts;
+using Entity.DTOs.Claims;
 using Microsoft.AspNetCore.Mvc;
 
 namespace WebAPI.Controllers;
@@ -21,15 +21,17 @@ public class ClaimsController(IClaimService claimService) : ControllerBase
     }
 
     [HttpPost("Add")]
-    public async Task<IActionResult> Add([FromBody] Claim claim)
+    public async Task<IActionResult> Add([FromBody] ClaimAddDto claimAddDto)
     {
-        return Ok(await claimService.AddAsync(claim));
+        await claimService.AddAsync(claimAddDto);
+        return Ok();
     }
 
-    [HttpPut("Update")]
-    public async Task<IActionResult> Update([FromBody] Claim claim)
+    [HttpPut("Update/{id}")]
+    public async Task<IActionResult> Update(Guid id, [FromBody] ClaimUpdateDto claimUpdateDto)
     {
-        return Ok(await claimService.UpdateAsync(claim));
+        await claimService.UpdateAsync(id, claimUpdateDto);
+        return Ok();
     }
 
     [HttpDelete("Delete/{id}")]

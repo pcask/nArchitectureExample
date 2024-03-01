@@ -1,16 +1,8 @@
-﻿using Core.Entities.Security;
-
-namespace Core.CrossCuttingConcerns.Validation;
+﻿namespace Core.CrossCuttingConcerns.Validation;
 
 
-[AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = true, Inherited = false)]
 public class ValidationMethod(byte Priority = 0) : Attribute
 {
     public short Priority { get; } = Priority;
-}
-
-public record ValidationReturn
-{
-    public AppUser User { get; set; }
-    public bool NoNeedToGoToDb { get; set; }
 }

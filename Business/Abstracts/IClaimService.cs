@@ -1,21 +1,23 @@
 ﻿using Core.Entities.Security;
+using Entity.DTOs.Claims;
+using Entity.ViewModels.Claims;
 
-namespace Business.Abstracts;
+namespace Core.Abstracts;
 
 public interface IClaimService
 {
-    IEnumerable<Claim> GetAll();
-    Claim? GetById(Guid id);
+    IEnumerable<ClaimListVm> GetAll();
+    ClaimVm? GetById(Guid id);
 
-    Claim Add(Claim claim);
-    Claim Update(Claim claim);
+    ClaimVm Add(ClaimAddDto claimAddDto);
+    void Update(Guid id, ClaimUpdateDto claimUpdateDto);
     void DeleteById(Guid id);
 
 
-    Task<IEnumerable<Claim>> GetAllAsync();
-    Task<Claim?> GetByIdAsync(Guid id);
+    Task<IEnumerable<ClaimListVm>> GetAllAsync();
+    Task<ClaimVm?> GetByIdAsync(Guid id);
 
-    Task<Claim> AddAsync(Claim claim);
-    Task<Claim> UpdateAsync(Claim claim);
+    Task<ClaimVm> AddAsync(ClaimAddDto claimAddDto);
+    Task UpdateAsync(Guid id, ClaimUpdateDto claimUpdateDto);
     Task DeleteByIdAsync(Guid id);
 }

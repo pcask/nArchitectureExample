@@ -1,22 +1,22 @@
 ﻿using Entity.DTOs.UserClaims;
 using Entity.ViewModels.UserClaims;
 
-namespace Business.Abstracts;
+namespace Core.Abstracts;
 
 public interface IUserClaimService
 {
-    IEnumerable<UserClaimListViewModel> GetAll();
-    UserClaimViewModel GetById(Guid id);
+    IEnumerable<UserClaimListVm> GetAll();
+    UserClaimVm GetById(Guid id);
 
-    void Add(AddUserClaimDto addUserClaimDto);
-    void Update(UpdateUserClaimDto userClaimDto);
+    void Add(UserClaimAddDto addUserClaimDto);
+    void Update(UserClaimUpdateDto userClaimDto);
     void DeleteById(Guid id);
 
 
-    Task<IEnumerable<UserClaimListViewModel>> GetAllAsync();
-    Task<UserClaimViewModel> GetByIdAsync(Guid id);
+    Task<IEnumerable<UserClaimListVm>> GetAllAsync();
+    Task<UserClaimVm> GetByIdAsync(Guid id);
 
-    Task AddAsync(AddUserClaimDto addUserClaimDto);
-    Task UpdateAsync(UpdateUserClaimDto updateUserClaimDto);
+    Task AddAsync(UserClaimAddDto addUserClaimDto);
+    Task UpdateAsync(UserClaimUpdateDto updateUserClaimDto);
     Task DeleteByIdAsync(Guid id);
 }

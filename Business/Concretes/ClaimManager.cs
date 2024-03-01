@@ -1,59 +1,76 @@
-﻿using Business.Abstracts;
-using Business.Validations;
-using Core.Entities.Security;
+﻿using Core.Abstracts;
 using DataAccess.Abstracts;
+using Entity.ViewModels.Claims;
+using Entity.DTOs.Claims;
+using Core.Aspects.Autofac.Validation;
+using Business.Validations.Claims;
+using Business.Concretes.Common;
 
-namespace Business.Concretes;
+namespace Core.Concretes;
 
-public class ClaimManager(IClaimRepository claimRepository, ClaimValidations claimValidations) : IClaimService
+public class ClaimManager(IClaimRepository claimRepository) : ManagerBase, IClaimService
 {
-    public Claim Add(Claim claim)
+    public ClaimVm Add(ClaimAddDto claimAddDto)
     {
-        return claimRepository.Add(claim);
+        var addedClaim = claimRepository.Add(claimAddDto.GetEntity());
+        return ClaimVm.GetModel(addedClaim);
     }
 
-    public async Task<Claim> AddAsync(Claim claim)
+    public async Task<ClaimVm> AddAsync(ClaimAddDto claimAddDto)
     {
-        return await claimRepository.AddAsync(claim);
+        var addedClaim = await claimRepository.AddAsync(claimAddDto.GetEntity());
+        return ClaimVm.GetModel(addedClaim);
     }
 
+    [ValidationAspect(typeof(ClaimDeleteValidations))]
     public void DeleteById(Guid id)
     {
-        var claim = claimRepository.Get(c => c.Id == id);
-
-        claimValidations.CheckExistence(claim);
-        claimRepository.Delete(claim);
+        claimRepository.Delete(ValidationReturn.Entity);
     }
 
+    [ValidationAspect(typeof(ClaimDeleteValidations))]
     public async Task DeleteByIdAsync(Guid id)
     {
-        var claim = await claimRepository.GetAsync(c => c.Id == id);
-
-        await claimValidations.CheckExistenceAsync(claim);
-        await claimRepository.DeleteAsync(claim);
+        await claimRepository.DeleteAsync(ValidationReturn.Entity);
     }
 
-    public IEnumerable<Claim> GetAll() => claimRepository.GetAll();
-
-    public async Task<IEnumerable<Claim>> GetAllAsync() => await claimRepository.GetAllAsync();
-
-    public Claim? GetById(Guid id) => claimRepository.Get(c => c.Id == id);
-
-    public async Task<Claim?> GetByIdAsync(Guid id) => await claimRepository.GetAsync(c => c.Id == id);
-
-    public Claim Update(Claim claim)
+    public IEnumerable<ClaimListVm> GetAll()
     {
-        var _claim = claimRepository.Get(c => c.Id == claim.Id);
-        claimValidations.CheckExistence(_claim);
-
-        return claimRepository.Update(claim);
+        return ClaimListVm.GetModels(claimRepository.GetAll());
     }
 
-    public async Task<Claim> UpdateAsync(Claim claim)
+    public async Task<IEnumerable<ClaimListVm>> GetAllAsync()
     {
-        var _claim = await claimRepository.GetAsync(c => c.Id == claim.Id);
-        await claimValidations.CheckExistenceAsync(_claim);
+        return ClaimListVm.GetModels(await claimRepository.GetAllAsync());
+    }
 
-        return await claimRepository.UpdateAsync(claim);
+    [ValidationAspect(typeof(ClaimValidations))]
+    public ClaimVm? GetById(Guid id)
+    {
+        return ClaimVm.GetModel(ValidationReturn.Entity);
+    }
+
+    [ValidationAspect(typeof(ClaimValidations))]
+    public async Task<ClaimVm?> GetByIdAsync(Guid id)
+    {
+        return await Task.Run(() => ClaimVm.GetModel(ValidationReturn.Entity));
+    }
+
+    [ValidationAspect(typeof(ClaimUpdateValidations))]
+    public void Update(Guid id, ClaimUpdateDto claimUpdateDto)
+    {
+        if (ValidationReturn.NoNeedToGoToDb)
+            return;
+
+        claimRepository.Update(claimUpdateDto.GetEntity(ValidationReturn.Entity));
+    }
+
+    [ValidationAspect(typeof(ClaimUpdateValidations))]
+    public async Task UpdateAsync(Guid id, ClaimUpdateDto claimUpdateDto)
+    {
+        if (ValidationReturn.NoNeedToGoToDb)
+            return;
+
+        await claimRepository.Update(claimUpdateDto.GetEntity(ValidationReturn.Entity));
     }
 }

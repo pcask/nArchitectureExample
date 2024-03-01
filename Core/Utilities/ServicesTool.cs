@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Core.Utilities;
 
-public class ServicesTool
+public static class ServicesTool
 {
     public static IServiceProvider ServiceProvider { get; set; }
     private static ILifetimeScope _lifetimeScope { get; set; } // From Autofac
@@ -39,10 +39,10 @@ public class ServicesTool
     //        ?? throw new Exception("Service not found in Autofac Container!");
     //}
 
-    public static IInstanceActivator GetAutofacServiceByName(string serviceName)
+    public static IInstanceActivator GetAutofacActivator(Type type)
     {
         return _lifetimeScope.ComponentRegistry.Registrations
-            .FirstOrDefault(s => s.Services.First().Description == serviceName)?
-            .Activator ?? throw new Exception("Service not found in Autofac Container!");
+            .FirstOrDefault(r => r.Activator.LimitType == type)?
+            .Activator ?? throw new Exception("Activator not found in Autofac Container!");
     }
 }

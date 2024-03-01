@@ -1,6 +1,4 @@
-﻿using Business.Abstracts;
-using Entity.DTOs.CardTransactions;
-using Entity.DTOs.UserClaims;
+﻿using Core.Abstracts;
 using Entity.DTOs.Users;
 using Microsoft.AspNetCore.Mvc;
 
@@ -40,20 +38,6 @@ public class UsersController(IUserService userService, IUserClaimService userCla
     public async Task<IActionResult> Delete(Guid id)
     {
         await userService.DeleteByIdAsync(id);
-        return Ok();
-    }
-
-    [HttpPost("AddBalance/{id}")]
-    public async Task<IActionResult> AddBalance([FromBody] AddCardTransactionDto addCardTransactionDto)
-    {
-        await userService.AddBalanceAsync(addCardTransactionDto);
-        return Ok();
-    }
-
-    [HttpPost("AddClaim")]
-    public async Task<IActionResult> AddClaim([FromBody] AddUserClaimDto addUserClaimDto)
-    {
-        await userClaimService.AddAsync(addUserClaimDto);
         return Ok();
     }
 }

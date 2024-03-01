@@ -1,7 +1,7 @@
-﻿using Business.Exceptions;
+﻿using Core.Exceptions;
 using Core.Entities.Security;
 
-namespace Business.Validations;
+namespace Core.Validations;
 
 public class UserClaimValidations
 {

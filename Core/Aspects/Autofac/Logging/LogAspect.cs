@@ -11,6 +11,11 @@ public class LogAspect : MethodInterception
         Debug.Write($"Before calling the '{invocation.Method.DeclaringType.FullName}' method");
     }
 
+    public override void OnException(IInvocation invocation, Exception exception)
+    {
+        Debug.Write($"\nAn exception occurred while processing '{invocation.Method.DeclaringType.FullName}' method. \n[EXCEPTION] = {exception.Message} ");
+    }
+
     public override void OnAfter(IInvocation invocation)
     {
         Debug.Write($"After calling the '{invocation.Method.DeclaringType.FullName}' method");

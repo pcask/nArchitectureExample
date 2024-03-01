@@ -1,11 +1,10 @@
-﻿using Core.CrossCuttingConcerns.Validation;
-using Core.Security.JWT;
+﻿using Core.Security.JWT;
 using Entity.DTOs.Users;
 
-namespace Business.Abstracts;
+namespace Core.Abstracts;
 
 public interface IAuthService
 {
     Task RegisterAsync(UserAddDto userRegisterDto);
-    Task<AccessToken> LoginAsync(UserLoginDto userLoginDto, ValidationReturn validationReturn = null);
+    Task<AccessToken> LoginAsync(UserLoginDto userLoginDto);
 }

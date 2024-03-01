@@ -12,7 +12,7 @@ public class UserAddDto
     public string LastName { get; set; }
     public short BirthYear { get; set; }
 
-    public User GetUser(byte[] passwordHash, byte[] passwordSalt)
+    public User GetEntity(byte[] passwordHash, byte[] passwordSalt)
     {
         return new()
         {

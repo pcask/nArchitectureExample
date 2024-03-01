@@ -1,6 +1,6 @@
 ﻿using Entity.Entities;
 
-namespace Business.Abstracts;
+namespace Core.Abstracts;
 
 public interface IProductService
 {

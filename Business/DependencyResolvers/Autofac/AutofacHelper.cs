@@ -4,7 +4,7 @@ using Castle.DynamicProxy;
 using Core.Utilities.Interceptors;
 using System.Reflection;
 
-namespace Business.DependencyResolvers.Autofac;
+namespace Core.DependencyResolvers.Autofac;
 
 public static class AutofacHelper
 {
